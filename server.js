@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid'); // Импортируем библиот
 const path = require('path'); // Подключаем модуль для работы с путями
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Подключение к MongoDB
 const dbURI = process.env.MONGODB_URI;
