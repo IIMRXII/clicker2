@@ -10,7 +10,7 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f0f8ff; /* Фон кликера */
+            background-color: #f0f8ff;
             color: #333;
             touch-action: manipulation; /* Блокируем масштабирование */
         }
@@ -20,22 +20,22 @@
             color: #2c3e50;
         }
         #clickButton {
-            padding: 0; /* Убираем padding */
-            background: none; /* Убираем фоновый цвет */
-            border: none; /* Убираем границу */
+            padding: 0;
+            background: none;
+            border: none;
             cursor: pointer;
-            border-radius: 10px; /* Закругление углов (по желанию) */
-            outline: none; /* Убираем контур */
-            display: inline-block; /* Позволяем задавать размеры */
-            width: 200px; /* Ширина кнопки (отрегулируйте по своему усмотрению) */
-            height: 200px; /* Высота кнопки (отрегулируйте по своему усмотрению) */
-            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); /* Установите URL вашего изображения */
-            background-size: cover; /* Растягиваем изображение */
-            background-position: center; /* Центрируем изображение */
-            transition: transform 0.2s; /* Эффект при наведении */
+            border-radius: 10px;
+            outline: none;
+            display: inline-block;
+            width: 200px;
+            height: 200px;
+            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); / Замените на ваше изображение /
+            background-size: cover;
+            background-position: center;
+            transition: transform 0.2s;
         }
         #clickButton:hover {
-            transform: scale(1.05); /* Увеличиваем при наведении */
+            transform: scale(1.05);
         }
         h2 {
             margin-top: 20px;
@@ -49,7 +49,7 @@
         }
         #upgradeMenu {
             margin-top: 30px;
-            display: none; /* Скрываем меню улучшений по умолчанию */
+            display: none;
         }
         .upgrade-button {
             margin-top: 10px;
@@ -69,7 +69,7 @@
 </head>
 <body>
     <h1>Добро пожаловать в Кликер!</h1>
-    <button id="clickButton"></button> <!-- Кнопка без текста, изображение будет как фон -->
+    <button id="clickButton"></button>
     <h2 id="scoreDisplay">Счет: 0</h2>
 
     <h2>Улучшения:</h2>
@@ -89,101 +89,97 @@
     </footer>
 
     <script>
-        // Блокировка жеста масштабирования
         window.addEventListener('touchmove', function(event) {
             if (event.touches.length > 1) {
                 event.preventDefault();
             }
         }, { passive: false });
 
-        // Загружаем данные из localStorage
-        let score = parseInt(localStorage.getItem('score')) || 0;
-        let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
-        let clickMultiplier = parseInt(localStorage.getItem('clickMultiplier')) || 1; // Множитель кликов
-        let clickUpgradeCost = parseInt(localStorage.getItem('clickUpgradeCost')) || 100; // Начальная стоимость улучшения кликов
-        let autoClickerActive = false; // Статус автокликера
-        let autoClickDuration = 8  60  60  1000; // 8 часов в миллисекундах
-        let autoClickInterval; // Интервал для автокликера
-        let autoClickEndTime; // Время окончания автокликера
+        let score = 0;
+        let clickMultiplier = 1;
+        let clickUpgradeCost = 100;
+        let userId = localStorage.getItem('userId');
 
-        // Генерируем userId, если его нет
-        if (!userId) {
-            userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
-            localStorage.setItem('userId', userId); // Сохраняем его
-        }
-
-        // Функция для обновления счета в интерфейсе и localStorage
-        function updateScoreDisplay() {
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
-            localStorage.setItem('score', score); // Сохраняем счет в localStorage
-        }
-
-        // Функция для обработки клика
-        const clickHandler = async () => {
-            score += clickMultiplier; // Увеличиваем счет с учетом множителя
+        // Получаем или создаем пользователя
+        const getUser = async () => {
+            if (!userId) {
+                userId = Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', userId);
+            }
+            const response = await fetch('/api/user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId })
+            });
+            const user = await response.json();
+            score = user.score;
+            clickMultiplier = user.clickMultiplier;
+            clickUpgradeCost = user.clickUpgradeCost;
             updateScoreDisplay();
         };
 
-        // Обработчик для одного касания
-        document.getElementById('clickButton').addEventListener('click', clickHandler);
+        const updateScoreDisplay = () => {
+            document.getElementById('scoreDisplay').innerText = Счет: ${score};
+        };
 
-        // Обработчик для двух касаний
+        const clickHandler = async () => {
+            score += clickMultiplier;
+            updateScoreDisplay();
+            await fetch('/api/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId })
+            });
+        };
+
+        document.getElementById('clickButton').addEventListener('click', clickHandler);
         document.getElementById('clickButton').addEventListener('touchstart', (event) => {
             if (event.touches.length === 2) {
-                clickHandler(); // Обрабатываем клик при двух касаниях
+                clickHandler();
             }
         });
 
-        // Обработчик для показа/скрытия меню улучшений
         document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
             const upgradeMenu = document.getElementById('upgradeMenu');
-            upgradeMenu.style.display = upgradeMenu.style.display === 'none' ? 'block' : 'none';
+            upgradeMenu.style.display = upgradeMenu.style.display=== 'none' ? 'block' : 'none';
         });
 
-        // Обработчик для улучшения кликов
-        document.getElementById('clickUpgradeButton').addEventListener('click', () => {
+        document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
             if (score >= clickUpgradeCost) {
-                score -= clickUpgradeCost; // Уменьшаем счет на стоимость улучшения
-                clickMultiplier += 1; // Увеличиваем множитель кликов
-                clickUpgradeCost = Math.floor(clickUpgradeCost  1.5); // Увеличиваем стоимость следующего улучшения
-                localStorage.setItem('clickMultiplier', clickMultiplier); // Сохраняем множитель в localStorage
-                localStorage.setItem('clickUpgradeCost', clickUpgradeCost); // Сохраняем стоимость улучшения в localStorage
+                score -= clickUpgradeCost;
+                clickMultiplier += 1;
+                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5);
                 updateScoreDisplay();
+                
+                await fetch('/api/upgrade', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
                 document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
-                document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
             }
         });
 
-        // Функция для запуска автокликера
-        const startAutoClicker = () => {
-            if (score >= 500 && !autoClickerActive) {
-                score -= 500; // Уменьшаем счет на 500
-                autoClickerActive = true;
-                autoClickEndTime = Date.now() + autoClickDuration; // Устанавливаем время окончания
-                updateScoreDisplay();
-                document.getElementById('autoClickerMessage').innerText = 'Автокликер активен!';
-
-                autoClickInterval = setInterval(() => {
-                    if (Date.now() >= autoClickEndTime) { // Проверяем, истек ли срок действия автокликера
-                        clearInterval(autoClickInterval);
-                        autoClickerActive = false;
-                        document.getElementById('autoClickerMessage').innerText = 'Автокликер отключен!';
-                    } else {
-                        clickHandler(); // Вызываем обработчик клика
-                    }
-                }, 1000); // Автокликер срабатывает каждую секунду
+        document.getElementById('startAutoClickerButton').addEventListener('click', async () => {
+            if (score >= 500) {
+                // Логика автокликера...
             } else {
-                document.getElementById('autoClickerMessage').innerText = 'Недостаточно очков для автокликера или он уже активен!';
+                document.getElementById('autoClickerMessage').innerText = 'Недостаточно очков для автокликера!';
             }
-        };
+        });
 
-        // Обработчик для автокликера
-        document.getElementById('startAutoClickerButton').addEventListener('click', startAutoClicker);
-
-        // Обновляем интерфейс в начальной загрузке
-        updateScoreDisplay();
+        // Запускаем
+        getUser();
     </script>
 </body>
 </html>
