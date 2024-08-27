@@ -44,6 +44,7 @@ app.post('/api/user', async (req, res) => {
 app.post('/api/click', async (req, res) => {
     const { userId } = req.body;
 
+    // Поиск пользователя и обновление счета
     const user = await User.findOneAndUpdate(
         { userId },
         { $inc: { score: 1 } },
@@ -66,11 +67,12 @@ app.post('/api/upgrade', async (req, res) => {
         return res.status(404).send('Пользователь не найден');
     }
 
+    // Проверяем, достаточно ли очков для улучшения
     if (user.score >= user.clickUpgradeCost) {
-        user.score -= user.clickUpgradeCost;
-        user.clickMultiplier += 1;
-        user.clickUpgradeCost = Math.floor(user.clickUpgradeCost * 1.5);
-        await user.save();
+        user.score -= user.clickUpgradeCost; // Уменьшаем счет на стоимость улучшения
+        user.clickMultiplier += 1; // Увеличиваем множитель кликов
+        user.clickUpgradeCost = Math.floor(user.clickUpgradeCost * 1.5); // Обновляем стоимость улучшения
+        await user.save(); // Сохраняем изменения
         res.json(user);
     } else {
         return res.status(400).json({ message: 'Недостаточно очков для улучшения!' });
