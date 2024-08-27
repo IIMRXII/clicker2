@@ -10,7 +10,7 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #f0f8ff;
+            background-color: #f0f8ff; /* Фон кликера */
             color: #333;
             touch-action: manipulation; /* Блокируем масштабирование */
         }
@@ -29,7 +29,7 @@
             display: inline-block; /* Позволяем задавать размеры */
             width: 200px; /* Ширина кнопки (отрегулируйте по своему усмотрению) */
             height: 200px; /* Высота кнопки (отрегулируйте по своему усмотрению) */
-            background-image: url(https://612611.selcdn.ru/prod-s3/iblock/239/239ddf22907deb5085a521af4018ae02/87cfb8ced36595303e5769abf668f0e2.jpg); /* Установите URL вашего изображения */
+            background-image: url(https://w-dog.ru/wallpapers/10/13/528248213992105/priroda-gory-les-elki-ozero-derevo.jpg); /* Установите URL вашего изображения */
             background-size: cover; /* Растягиваем изображение */
             background-position: center; /* Центрируем изображение */
             transition: transform 0.2s; /* Эффект при наведении */
@@ -50,11 +50,11 @@
     </style>
 </head>
 <body>
-    <h1>BRODILKA2024</h1>
+    <h1>Добро пожаловать в Кликер!</h1>
     <button id="clickButton"></button> <!-- Кнопка без текста, изображение будет как фон -->
     <h2 id="scoreDisplay">Счет: 0</h2>
     <footer>
-        <p>&copy; 2024 Ваш Кликер. Все права защищены.</p>
+        <p>&copy; 2023 Ваш Кликер. Все права защищены.</p>
     </footer>
 
     <script>
@@ -74,7 +74,7 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
-        // Обработчик события для клика одной кнопкой
+        // Функция для обработки клика
         const clickHandler = async () => {
             const response = await fetch('/api/click', {
                 method: 'POST',
@@ -83,9 +83,14 @@
                 },
                 body: JSON.stringify({ userId }) // Отправляем userId серверу
             });
-            const data = await response.json();
-            score = data.score; // Обновляем счет
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+
+            if (response.ok) {
+                const data = await response.json();
+                score = data.score; // Обновляем счет
+                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            } else {
+                console.error('Ошибка при обновлении счета');
+            }
         };
 
         // Обработчик для одного касания
@@ -93,10 +98,7 @@
 
         // Обработчик для двух касаний
         document.getElementById('clickButton').addEventListener('touchstart', (event) => {
-            if (event
-
-> UniversusGPT Neurobot:
-.touches.length === 2) {
+            if (event.touches.length === 2) {
                 clickHandler(); // Обрабатываем клик при двух касаниях
             }
         });
