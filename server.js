@@ -1,3 +1,4 @@
+require('dotenv').config(); // Подключаем dotenv
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -16,10 +17,8 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 // Подключаемся к MongoDB
-mongoose.connect(mongodb+srv://IIMRXII:1й2ц3у4к5е@clicker.pekwv.mongodb.net/?retryWrites=true&w=majority&appName=clicker, {
+mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
-})
 .then(() => console.log('MongoDB connected...'))
 .catch(err => console.log(err));
 
