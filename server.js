@@ -1,60 +1,86 @@
-require('dotenv').config(); // Подгружаем переменные окружения
 const express = require('express');
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid'); // Импортируем библиотеку uuid
-const path = require('path'); // Подключаем модуль для работы с путями
+const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Подключение к MongoDB
-const dbURI = process.env.MONGODB_URI;
-mongoose.connect(dbURI)
-  .then(() => {
-    console.log('Успешное подключение к базе данных');
-  })
-  .catch(err => {
-    console.error('Ошибка подключения к базе данных:', err);
-  });
-
-// Middleware для парсинга JSON
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Раздача статических файлов из папки public
-
-// Структура данных (модель кликов)
-const clickSchema = new mongoose.Schema({
-    userId: { type: String, required: true }, // Идентификатор пользователя
-    score: { type: Number, default: 0 } // Счет
+// Модели
+const userSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    score: { type: Number, default: 0 },
+    clickMultiplier: { type: Number, default: 1 },
+    clickUpgradeCost: { type: Number, default: 100 }
 });
 
-const Click = mongoose.model('Click', clickSchema);
+const User = mongoose.model('User', userSchema);
 
-// API для обработки кликов
-app.post('/api/click', async (req, res) => {
-    let { userId } = req.body;
+// Подключаемся к MongoDB
+mongoose.connect(mongodb+srv://IIMRXII:1й2ц3у4к5е@clicker.pekwv.mongodb.net/?retryWrites=true&w=majority&appName=clicker, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected...'))
+.catch(err => console.log(err));
 
-    // Если userId не передан, создаем новый
-    if (!userId) {
-        userId = uuidv4(); // Генерируем уникальный ID
+// Middleware
+app.use(bodyParser.json());
+
+// Получить пользователя
+app.post('/api/user', async (req, res) => {
+    const { userId } = req.body;
+    
+    let user = await User.findOne({ userId });
+    if (!user) {
+        user = new User({ userId });
+        await user.save();
     }
+    
+    res.json(user);
+});
 
-    try {
-        let clickedUser = await Click.findOne({ userId });
-        if (!clickedUser) {
-            clickedUser = new Click({ userId, score: 0 });
+// Получить пользователя по ID
+app.get('/api/user/:userId', async (req, res) => {
+    const user = await User.findOne({ userId: req.params.userId });
+    if (user) return res.json(user);
+    return res.status(404).json({ message: 'User not found' });
+});
+
+// Обновить счет
+app.post('/api/click', async (req, res) => {
+    const { userId } = req.body;
+    const user = await User.findOneAndUpdate(
+        { userId },
+        { $inc: { score: 1 } },
+        { new: true }
+    );
+    if (!user) {
+        res.status(404).send('User not found');
+    } else {
+        res.json(user);
+    }
+});
+
+// Обновление кликов
+app.post('/api/upgrade', async (req, res) => {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (user) {
+        if (user.score >= user.clickUpgradeCost) {
+            user.score -= user.clickUpgradeCost;
+            user.clickMultiplier += 1;
+            user.clickUpgradeCost = Math.floor(user.clickUpgradeCost * 1.5);
+            await user.save();
+            res.json(user);
+        } else {
+            res.status(400).json({ message: 'Недостаточно очков для улучшения!' });
         }
-        
-        clickedUser.score += 1; // Увеличиваем счет
-        await clickedUser.save(); // Сохраняем изменения
-
-        // Отправляем ответ с ID и счетом
-        res.json({ userId: clickedUser.userId, score: clickedUser.score });
-    } catch (error) {
-        res.status(500).json({ error: 'Ошибка обработки клика' });
+    } else {
+        res.status(404).send('User not found');
     }
 });
 
 // Запуск сервера
 app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
