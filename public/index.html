@@ -77,10 +77,6 @@
 
     <button class="upgrade-button" id="toggleUpgradeMenuButton">Показать/Скрыть меню улучшений</button>
     
-    <h2>Автокликер:</h2>
-    <button class="upgrade-button" id="startAutoClickerButton">Запустить автокликер (500 очков)</button>
-    <p id="autoClickerMessage"></p>
-
     <footer>
         <p>&copy; 2023 Ваш Кликер. Все права защищены.</p>
     </footer>
@@ -96,7 +92,7 @@
         };
 
         const clickHandler = async () => {
-            console.log('Кнопка клика нажата'); // Отладочная информация
+            console.log('Кнопка клика нажата!'); // Отладочная информация
             try {
                 const response = await fetch('/api/click', {
                     method: 'POST',
@@ -108,7 +104,6 @@
                 
                 if (response.ok) {
                     const user = await response.json();
-                    // Обновляем счет и цену улучшения после успешного запроса
                     score = user.score; 
                     clickMultiplier = user.clickMultiplier;
                     clickUpgradeCost = user.clickUpgradeCost;
@@ -122,11 +117,10 @@
             }
         };
 
-        // Привязываем обработчик кликов к кнопке
         document.getElementById('clickButton').addEventListener('click', clickHandler);
 
         const upgradeHandler = async () => {
-            console.log('Кнопка улучшения нажата'); // Отладочная информация
+            console.log('Кнопка улучшения нажата!'); // Отладочная информация
             if (score >= clickUpgradeCost) {
                 try {
                     const response = await fetch('/api/upgrade', {
@@ -139,7 +133,6 @@
                     
                     if (response.ok) {
                         const user = await response.json();
-                        // Обновляем счет и параметры улучшения
                         score = user.score;
                         clickMultiplier = user.clickMultiplier;
                         clickUpgradeCost = user.clickUpgradeCost;
@@ -157,10 +150,8 @@
             }
         };
 
-        // Привязываем обработчик улучшений к кнопке
         document.getElementById('clickUpgradeButton').addEventListener('click', upgradeHandler);
 
-        // Инициализация пользователя
         const initializeUser = async () => {
             if (!userId) {
                 userId = Math.random().toString(36).substr(2, 9);
@@ -176,17 +167,17 @@
 
             if (response.ok) {
                 const user = await response.json();
-                score = user.score; // Записываем текущий счет
-                clickMultiplier = user.clickMultiplier; // Записываем текущий множитель
-                clickUpgradeCost = user.clickUpgradeCost; // Записываем стоимость улучшения
-                updateScoreDisplay(); // Обновляем отображение
-                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`; // Обновляем текст кнопки
+                score = user.score; 
+                clickMultiplier = user.clickMultiplier; 
+                clickUpgradeCost = user.clickUpgradeCost; 
+                updateScoreDisplay(); 
+                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`; 
             } else {
                 console.error('Ошибка при инициализации пользователя:', response.statusText);
             }
         };
 
-        initializeUser(); // Вызов инициализации
+        initializeUser(); 
     </script>
 </body>
 </html>
