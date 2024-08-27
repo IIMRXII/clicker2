@@ -19,7 +19,7 @@
             font-size: 2.5em;
             color: #2c3e50;
         }
-        button {
+        #clickButton {
             padding: 0; /* Убираем padding */
             background: none; /* Убираем фоновый цвет */
             border: none; /* Убираем границу */
@@ -29,12 +29,12 @@
             display: inline-block; /* Позволяем задавать размеры */
             width: 200px; /* Ширина кнопки (отрегулируйте по своему усмотрению) */
             height: 200px; /* Высота кнопки (отрегулируйте по своему усмотрению) */
-            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); /* Установите URL вашего изображения */
+            background-image: url('https://example.com/your-image.png'); /* Установите URL вашего изображения */
             background-size: cover; /* Растягиваем изображение */
             background-position: center; /* Центрируем изображение */
             transition: transform 0.2s; /* Эффект при наведении */
         }
-        button:hover {
+        #clickButton:hover {
             transform: scale(1.05); /* Увеличиваем при наведении */
         }
         h2 {
@@ -91,7 +91,8 @@
     <script>
         // Блокировка жеста масштабирования
         window.addEventListener('touchmove', function(event) {
-            if (event.touches.length > 1) {event.preventDefault();
+            if (event.touches.length > 1) {
+                event.preventDefault();
             }
         }, { passive: false });
 
@@ -100,7 +101,7 @@
         let clickMultiplier = 1; // Множитель кликов
         let clickUpgradeCost = 100; // Начальная стоимость улучшения кликов
         let autoClickerActive = false; // Статус автокликера
-        let autoClickDuration = 8  60  60  1000; // 8 часов в миллисекундах
+        let autoClickDuration = 8 * 60 * 60 * 1000; // 8 часов в миллисекундах
         let autoClickInterval; // Интервал для автокликера
         let autoClickEndTime; // Время окончания автокликера
 
@@ -137,10 +138,10 @@
             if (score >= clickUpgradeCost) {
                 score -= clickUpgradeCost; // Уменьшаем счет на стоимость улучшения
                 clickMultiplier += 1; // Увеличиваем множитель кликов
-                clickUpgradeCost = Math.floor(clickUpgradeCost  1.5); // Увеличиваем стоимость следующего улучшения
-                document.getElementById('scoreDisplay').innerText = Счет: ${score};
+                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5); // Увеличиваем стоимость следующего улучшения
+                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
                 document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
-                document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
+                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
             }
@@ -152,7 +153,7 @@
                 score -= 500; // Уменьшаем счет на 500
                 autoClickerActive = true;
                 autoClickEndTime = Date.now() + autoClickDuration; // Устанавливаем время окончания
-                document.getElementById('scoreDisplay').innerText = Счет: ${score};
+                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
                 document.getElementById('autoClickerMessage').innerText = 'Автокликер активен!';
 
                 autoClickInterval = setInterval(() => {
