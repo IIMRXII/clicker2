@@ -38,15 +38,15 @@
             margin-top: 20px;
             font-size: 2em;
             color: #e74c3c;
-        }
-        footer {
+        }footer {
             margin-top: 50px;
             font-size: 0.8em;
             color: #7f8c8d;
         }
         #upgradeMenu {
             margin-top: 30px;
-            display: none;}
+            display: none;
+        }
         .upgrade-button {
             margin-top: 10px;
             padding: 10px 20px;
@@ -91,11 +91,10 @@
         let userId = localStorage.getItem('userId');
 
         const updateScoreDisplay = () => {
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            document.getElementById('scoreDisplay').innerText = Счет: ${score};
         };
 
         const clickHandler = async () => {
-            // Отправка запроса на увеличение счета
             try {
                 const response = await fetch('/api/click', {
                     method: 'POST',
@@ -104,10 +103,15 @@
                     },
                     body: JSON.stringify({ userId })
                 });
+                
                 if (response.ok) {
                     const user = await response.json();
-                    score = user.score; // Получаем обновленный счет с сервера
+                    // Обновляем счет и цену улучшения после успешного запроса
+                    score = user.score; 
+                    clickMultiplier = user.clickMultiplier;
+                    clickUpgradeCost = user.clickUpgradeCost;
                     updateScoreDisplay();
+                    document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
                 } else {
                     console.error('Ошибка при обновлении счета:', response.statusText);
                 }
@@ -118,17 +122,8 @@
 
         document.getElementById('clickButton').addEventListener('click', clickHandler);
 
-        document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
-            const upgradeMenu = document.getElementById('upgradeMenu');
-            upgradeMenu.style.display = upgradeMenu.style.display === 'none' ? 'block' : 'none';
-        });
-
         const upgradeHandler = async () => {
             if (score >= clickUpgradeCost) {
-                score -= clickUpgradeCost;
-                clickMultiplier += 1;
-                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5);
-                
                 try {
                     const response = await fetch('/api/upgrade', {
                         method: 'POST',
@@ -137,17 +132,21 @@
                         },
                         body: JSON.stringify({ userId })
                     });
+                    
                     if (response.ok) {
                         const user = await response.json();
-                        score = user.score; // Обновляем счет
+                        // Обновляем счет и параметры улучшения
+                        score = user.score;
+                        clickMultiplier = user.clickMultiplier;
+                        clickUpgradeCost = user.clickUpgradeCost;
                         updateScoreDisplay();
-                        document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+                        document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
                         document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
                     } else {
-                        console.error('Ошибка при улучшении кликов:', response.statusText);
+                        document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
                     }
                 } catch (error) {
-                    console.error('Ошибка:', error);
+                    console.error('Ошибка при улучшении:', error);
                 }
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
@@ -156,7 +155,6 @@
 
         document.getElementById('clickUpgradeButton').addEventListener('click', upgradeHandler);
 
-        // Инициализация пользователя
         const initializeUser = async () => {
             if (!userId) {
                 userId = Math.random().toString(36).substr(2, 9);
@@ -172,16 +170,17 @@
 
             if (response.ok) {
                 const user = await response.json();
-                score = user.score;
-                clickMultiplier = user.clickMultiplier;
-                clickUpgradeCost = user.clickUpgradeCost;
-                updateScoreDisplay();
+                score = user.score; // Записываем текущий счет
+                clickMultiplier = user.clickMultiplier; // Записываем текущий множитель
+                clickUpgradeCost = user.clickUpgradeCost; // Записываем стоимость улучшения
+                updateScoreDisplay(); // Обновляем отображение
+                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`; // Обновляем текст кнопки
             } else {
                 console.error('Ошибка при инициализации пользователя:', response.statusText);
             }
         };
 
-        initializeUser(); // Вызов инициализации пользователя при загрузке
+        initializeUser(); // Вызов инициализации
     </script>
 </body>
 </html>
