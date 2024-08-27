@@ -29,7 +29,7 @@
             display: inline-block; /* Позволяем задавать размеры */
             width: 200px; /* Ширина кнопки (отрегулируйте по своему усмотрению) */
             height: 200px; /* Высота кнопки (отрегулируйте по своему усмотрению) */
-            background-image: url(https://w-dog.ru/wallpapers/10/13/528248213992105/priroda-gory-les-elki-ozero-derevo.jpg); /* Установите URL вашего изображения */
+            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); /* Установите URL вашего изображения */
             background-size: cover; /* Растягиваем изображение */
             background-position: center; /* Центрируем изображение */
             transition: transform 0.2s; /* Эффект при наведении */
@@ -47,12 +47,43 @@
             font-size: 0.8em;
             color: #7f8c8d;
         }
+        #upgradeMenu {
+            margin-top: 30px;
+            display: none; /* Скрываем меню улучшений по умолчанию */
+        }
+        .upgrade-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .upgrade-button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <h1>Добро пожаловать в Кликер!</h1>
     <button id="clickButton"></button> <!-- Кнопка без текста, изображение будет как фон -->
     <h2 id="scoreDisplay">Счет: 0</h2>
+
+    <h2>Улучшения:</h2>
+    <div id="upgradeMenu">
+        <button class="upgrade-button" id="clickUpgradeButton">Улучшить клики (100 очков)</button>
+        <p id="upgradeMessage"></p>
+    </div>
+
+    <button class="upgrade-button" id="toggleUpgradeMenuButton">Показать/Скрыть меню улучшений</button>
+    
+    <h2>Автокликер:</h2>
+    <button class="upgrade-button" id="startAutoClickerButton">Запустить автокликер (500 очков)</button>
+    <p id="autoClickerMessage"></p>
+
     <footer>
         <p>&copy; 2023 Ваш Кликер. Все права защищены.</p>
     </footer>
@@ -60,13 +91,18 @@
     <script>
         // Блокировка жеста масштабирования
         window.addEventListener('touchmove', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
+            if (event.touches.length > 1) {event.preventDefault();
             }
         }, { passive: false });
 
         let score = 0;
         let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
+        let clickMultiplier = 1; // Множитель кликов
+        let clickUpgradeCost = 100; // Начальная стоимость улучшения кликов
+        let autoClickerActive = false; // Статус автокликера
+        let autoClickDuration = 8  60  60  1000; // 8 часов в миллисекундах
+        let autoClickInterval; // Интервал для автокликера
+        let autoClickEndTime; // Время окончания автокликера
 
         // Генерируем userId, если его нет
         if (!userId) {
@@ -76,21 +112,8 @@
 
         // Функция для обработки клика
         const clickHandler = async () => {
-            const response = await fetch('/api/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId }) // Отправляем userId серверу
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                score = data.score; // Обновляем счет
-                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
-            } else {
-                console.error('Ошибка при обновлении счета');
-            }
+            score += clickMultiplier; // Увеличиваем счет с учетом множителя
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
         };
 
         // Обработчик для одного касания
@@ -102,6 +125,52 @@
                 clickHandler(); // Обрабатываем клик при двух касаниях
             }
         });
+
+        // Обработчик для показа/скрытия меню улучшений
+        document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
+            const upgradeMenu = document.getElementById('upgradeMenu');
+            upgradeMenu.style.display = upgradeMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Обработчик для улучшения кликов
+        document.getElementById('clickUpgradeButton').addEventListener('click', () => {
+            if (score >= clickUpgradeCost) {
+                score -= clickUpgradeCost; // Уменьшаем счет на стоимость улучшения
+                clickMultiplier += 1; // Увеличиваем множитель кликов
+                clickUpgradeCost = Math.floor(clickUpgradeCost  1.5); // Увеличиваем стоимость следующего улучшения
+                document.getElementById('scoreDisplay').innerText = Счет: ${score};
+                document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+                document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
+            } else {
+                document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
+            }
+        });
+
+        // Функция для запуска автокликера
+        const startAutoClicker = () => {
+            if (score >= 500 && !autoClickerActive) {
+                score -= 500; // Уменьшаем счет на 500
+                autoClickerActive = true;
+                autoClickEndTime = Date.now() + autoClickDuration; // Устанавливаем время окончания
+                document.getElementById('scoreDisplay').innerText = Счет: ${score};
+                document.getElementById('autoClickerMessage').innerText = 'Автокликер активен!';
+
+                autoClickInterval = setInterval(() => {
+                    if (Date.now() >= autoClickEndTime) { // Проверяем, истек ли срок действия автокликера
+                        clearInterval(autoClickInterval);
+                        autoClickerActive = false;
+                        document.getElementById('autoClickerMessage').innerText = 'Автокликер отключен!';
+                    } else {
+                        clickHandler(); // Вызываем обработчик клика
+                    }
+                }, 1000); // Автокликер срабатывает каждую секунду
+            } else {
+                document.getElementById('autoClickerMessage').innerText = 'Недостаточно очков для автокликера или он уже активен!';
+            }
+        };
+
+        // Обработчик для автокликера
+        document.getElementById('startAutoClickerButton').addEventListener('click', startAutoClicker);
     </script>
 </body>
 </html>
