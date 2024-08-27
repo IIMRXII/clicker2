@@ -12,7 +12,7 @@
             padding: 0;
             background-color: #f0f8ff;
             color: #333;
-            touch-action: manipulation; /* Блокируем масштабирование */
+            touch-action: manipulation; 
         }
         h1 {
             margin-top: 50px;
@@ -29,13 +29,10 @@
             display: inline-block;
             width: 200px;
             height: 200px;
-            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); / Замените на ваше изображение /
+            background-image: url('https://example.com/your-image.png'); 
             background-size: cover;
             background-position: center;
             transition: transform 0.2s;
-        }
-        #clickButton:hover {
-            transform: scale(1.05);
         }
         h2 {
             margin-top: 20px;
@@ -49,7 +46,7 @@
         }
         #upgradeMenu {
             margin-top: 30px;
-            display: none;
+            display: none; 
         }
         .upgrade-button {
             margin-top: 10px;
@@ -69,7 +66,7 @@
 </head>
 <body>
     <h1>Добро пожаловать в Кликер!</h1>
-    <button id="clickButton"></button>
+    <button id="clickButton">Кликни меня!</button>
     <h2 id="scoreDisplay">Счет: 0</h2>
 
     <h2>Улучшения:</h2>
@@ -89,19 +86,56 @@
     </footer>
 
     <script>
-        window.addEventListener('touchmove', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
-
         let score = 0;
         let clickMultiplier = 1;
         let clickUpgradeCost = 100;
         let userId = localStorage.getItem('userId');
 
-        // Получаем или создаем пользователя
-        const getUser = async () => {
+        const updateScoreDisplay = () => {
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        };
+
+        const clickHandler = async () => {
+            score += clickMultiplier;
+            await fetch('/api/click', { // Отправляем запрос на сервер для обновления счета
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId })
+            });
+            updateScoreDisplay(); // Обновляем отображение счета
+        };
+
+        document.getElementById('clickButton').addEventListener('click', clickHandler);
+
+        document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
+            const upgradeMenu = document.getElementById('upgradeMenu');
+            upgradeMenu.style.display = upgradeMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
+            if (score >= clickUpgradeCost) {
+                score -= clickUpgradeCost;
+                clickMultiplier += 1;
+                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5);
+                await fetch('/api/upgrade', { // Отправляем запрос на сервер для улучшения
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+                updateScoreDisplay(); // Обновляем отображение счета
+                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+                document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+            } else {
+                document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
+            }
+        });
+
+        // Заполняем userId при загрузке страницы
+        const initializeUser = async () => {
             if (!userId) {
                 userId = Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('userId', userId);
@@ -120,66 +154,7 @@
             updateScoreDisplay();
         };
 
-        const updateScoreDisplay = () => {
-            document.getElementById('scoreDisplay').innerText = Счет: ${score};
-        };
-
-        const clickHandler = async () => {
-            score += clickMultiplier;
-            updateScoreDisplay();
-            await fetch('/api/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
-        };
-
-        document.getElementById('clickButton').addEventListener('click', clickHandler);
-        document.getElementById('clickButton').addEventListener('touchstart', (event) => {
-            if (event.touches.length === 2) {
-                clickHandler();
-            }
-        });
-
-        document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
-            const upgradeMenu = document.getElementById('upgradeMenu');
-            upgradeMenu.style.display = upgradeMenu.style.display=== 'none' ? 'block' : 'none';
-        });
-
-        document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
-            if (score >= clickUpgradeCost) {
-                score -= clickUpgradeCost;
-                clickMultiplier += 1;
-                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5);
-                updateScoreDisplay();
-                
-                await fetch('/api/upgrade', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userId })
-                });
-
-                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
-                document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
-            } else {
-                document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
-            }
-        });
-
-        document.getElementById('startAutoClickerButton').addEventListener('click', async () => {
-            if (score >= 500) {
-                // Логика автокликера...
-            } else {
-                document.getElementById('autoClickerMessage').innerText = 'Недостаточно очков для автокликера!';
-            }
-        });
-
-        // Запускаем
-        getUser();
+        initializeUser(); // Инициализируем пользователя при загрузке
     </script>
 </body>
 </html>
