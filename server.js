@@ -1,83 +1,60 @@
-require('dotenv').config(); // Подключаем dotenv
-const mongoose = require('mongoose');
+require('dotenv').config(); // Подгружаем переменные окружения
 const express = require('express');
-const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid'); // Импортируем библиотеку uuid
+const path = require('path'); // Подключаем модуль для работы с путями
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Подключение к MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB connected...'))
-    .catch(err => console.log('Error connecting to MongoDB:', err));
+const dbURI = process.env.MONGODB_URI;
+mongoose.connect(dbURI)
+  .then(() => {
+    console.log('Успешное подключение к базе данных');
+  })
+  .catch(err => {
+    console.error('Ошибка подключения к базе данных:', err);
+  });
 
-// Определение схемы и модели для пользователя
-const userSchema = new mongoose.Schema({
-    userId: { type: String, required: true, unique: true },
-    score: { type: Number, default: 0 },
-    clickMultiplier: { type: Number, default: 1 },
-    clickUpgradeCost: { type: Number, default: 100 }
+// Middleware для парсинга JSON
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public'))); // Раздача статических файлов из папки public
+
+// Структура данных (модель кликов)
+const clickSchema = new mongoose.Schema({
+    userId: { type: String, required: true }, // Идентификатор пользователя
+    score: { type: Number, default: 0 } // Счет
 });
 
-const User = mongoose.model('User', userSchema);
+const Click = mongoose.model('Click', clickSchema);
 
-// Middleware для обработки JSON
-app.use(bodyParser.json());
-
-// Подключаем middleware для обслуживания статических файлов
-app.use(express.static('public')); // Убедитесь, что у вас есть папка "public"
-
-// Обработчик для инициализации пользователя
-app.post('/api/user', async (req, res) => {
-    const { userId } = req.body;
-    
-    let user = await User.findOne({ userId });
-    if (!user) {
-        user = new User({ userId });
-        await user.save();
-    }
-    
-    res.json(user);
-});
-
-// Обработчик для обновления кликов
+// API для обработки кликов
 app.post('/api/click', async (req, res) => {
-    const { userId } = req.body;
+    let { userId } = req.body;
 
-    const user = await User.findOneAndUpdate(
-        { userId },
-        { $inc: { score: 1 } },
-        { new: true }
-    );
-
-    if (!user) {
-        return res.status(404).send('Пользователь не найден');
-    }
-    
-    res.json(user); // Возвращаем обновленного пользователя
-});
-
-// Обработчик для улучшения кликов
-app.post('/api/upgrade', async (req, res) => {
-    const { userId } = req.body;
-    const user = await User.findOne({ userId });
-    
-    if (!user) {
-        return res.status(404).send('Пользователь не найден');
+    // Если userId не передан, создаем новый
+    if (!userId) {
+        userId = uuidv4(); // Генерируем уникальный ID
     }
 
-    if (user.score >= user.clickUpgradeCost) {
-        user.score -= user.clickUpgradeCost;
-        user.clickMultiplier += 1;
-        user.clickUpgradeCost = Math.floor(user.clickUpgradeCost * 1.5);
-        await user.save();
-        res.json(user);
-    } else {
-        return res.status(400).json({ message: 'Недостаточно очков для улучшения!' });
+    try {
+        let clickedUser = await Click.findOne({ userId });
+        if (!clickedUser) {
+            clickedUser = new Click({ userId, score: 0 });
+        }
+        
+        clickedUser.score += 1; // Увеличиваем счет
+        await clickedUser.save(); // Сохраняем изменения
+
+        // Отправляем ответ с ID и счетом
+        res.json({ userId: clickedUser.userId, score: clickedUser.score });
+    } catch (error) {
+        res.status(500).json({ error: 'Ошибка обработки клика' });
     }
 });
 
 // Запуск сервера
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Сервер запущен на http://localhost:${PORT}`);
 });
