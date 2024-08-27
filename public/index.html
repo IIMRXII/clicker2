@@ -96,12 +96,13 @@
             }
         }, { passive: false });
 
-        let score = 0;
+        // Загружаем данные из localStorage
+        let score = parseInt(localStorage.getItem('score')) || 0;
         let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
-        let clickMultiplier = 1; // Множитель кликов
-        let clickUpgradeCost = 100; // Начальная стоимость улучшения кликов
+        let clickMultiplier = parseInt(localStorage.getItem('clickMultiplier')) || 1; // Множитель кликов
+        let clickUpgradeCost = parseInt(localStorage.getItem('clickUpgradeCost')) || 100; // Начальная стоимость улучшения кликов
         let autoClickerActive = false; // Статус автокликера
-        let autoClickDuration = 8 * 60 * 60 * 1000; // 8 часов в миллисекундах
+        let autoClickDuration = 8  60  60  1000; // 8 часов в миллисекундах
         let autoClickInterval; // Интервал для автокликера
         let autoClickEndTime; // Время окончания автокликера
 
@@ -111,10 +112,16 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
+        // Функция для обновления счета в интерфейсе и localStorage
+        function updateScoreDisplay() {
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            localStorage.setItem('score', score); // Сохраняем счет в localStorage
+        }
+
         // Функция для обработки клика
         const clickHandler = async () => {
             score += clickMultiplier; // Увеличиваем счет с учетом множителя
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            updateScoreDisplay();
         };
 
         // Обработчик для одного касания
@@ -138,10 +145,12 @@
             if (score >= clickUpgradeCost) {
                 score -= clickUpgradeCost; // Уменьшаем счет на стоимость улучшения
                 clickMultiplier += 1; // Увеличиваем множитель кликов
-                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5); // Увеличиваем стоимость следующего улучшения
-                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+                clickUpgradeCost = Math.floor(clickUpgradeCost  1.5); // Увеличиваем стоимость следующего улучшения
+                localStorage.setItem('clickMultiplier', clickMultiplier); // Сохраняем множитель в localStorage
+                localStorage.setItem('clickUpgradeCost', clickUpgradeCost); // Сохраняем стоимость улучшения в localStorage
+                updateScoreDisplay();
                 document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
-                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+                document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
             }
@@ -153,7 +162,7 @@
                 score -= 500; // Уменьшаем счет на 500
                 autoClickerActive = true;
                 autoClickEndTime = Date.now() + autoClickDuration; // Устанавливаем время окончания
-                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+                updateScoreDisplay();
                 document.getElementById('autoClickerMessage').innerText = 'Автокликер активен!';
 
                 autoClickInterval = setInterval(() => {
@@ -172,6 +181,9 @@
 
         // Обработчик для автокликера
         document.getElementById('startAutoClickerButton').addEventListener('click', startAutoClicker);
+
+        // Обновляем интерфейс в начальной загрузке
+        updateScoreDisplay();
     </script>
 </body>
 </html>
