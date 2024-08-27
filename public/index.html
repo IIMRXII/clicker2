@@ -73,16 +73,8 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
-        const clickButton = document.getElementById('clickButton');
-        let lastClickTime = 0; // Время последнего клика
-        const debounceDelay = 1000; // Задержка в миллисекундах
-
-        clickButton.addEventListener('click', async () => {
-            const now = Date.now();
-            if (now - lastClickTime < debounceDelay) return; // Игнорируем клики слишком быстро
-
-            lastClickTime = now; // Обновляем время последнего клика
-
+        // Обработчик события нажатия на кнопку
+        document.getElementById('clickButton').addEventListener('click', async () => {
             const response = await fetch('/api/click', {
                 method: 'POST',
                 headers: {
