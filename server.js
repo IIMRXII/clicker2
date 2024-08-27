@@ -1,25 +1,21 @@
-require('dotenv').config(); // Подключаем dotenv
+require('dotenv').config();
 const mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log('Error connecting to MongoDB:', err));
 
-// Определение схемы и модели для пользователя
-const userSchema = new mongoose.Schema({
-    userId: { type: String, required: true, unique: true },
-    score: { type: Number, default: 0 },
-    clickMultiplier: { type: Number, default: 1 },
-    clickUpgradeCost: { type: Number, default: 100 }
+// Обработчик корневого маршрута
+app.get('/', (req, res) => {
+    res.send('Привет! Это корень вашего приложения.');
 });
 
-const User = mongoose.model('User', userSchema);
-
-// Приложение и другие настройки (например, Express) идут сюда
-const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-
+// Middleware
 app.use(bodyParser.json());
 
 // Пример маршрута получения данных пользователя
@@ -34,7 +30,6 @@ app.post('/api/user', async (req, res) => {
 });
 
 // Запуск сервера
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
