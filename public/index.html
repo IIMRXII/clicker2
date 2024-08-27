@@ -29,7 +29,7 @@
             display: inline-block;
             width: 200px;
             height: 200px;
-            background-image: url(https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png); / Замените на ваше изображение /
+            background-image: url('https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png'); /* Замените на ваше изображение */
             background-size: cover;
             background-position: center;
             transition: transform 0.2s;
@@ -89,6 +89,7 @@
     </footer>
 
     <script>
+        // Блокируем масштабирование при сенсорном взаимодействии
         window.addEventListener('touchmove', function(event) {
             if (event.touches.length > 1) {
                 event.preventDefault();
@@ -113,6 +114,12 @@
                 },
                 body: JSON.stringify({ userId })
             });
+
+            if (!response.ok) {
+                console.error('Ошибка при получении пользователя:', response.statusText);
+                return;
+            }
+
             const user = await response.json();
             score = user.score;
             clickMultiplier = user.clickMultiplier;
@@ -121,65 +128,30 @@
         };
 
         const updateScoreDisplay = () => {
-            document.getElementById('scoreDisplay').innerText = Счет: ${score};
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`; // Исправлено: добавлены обратные кавычки
         };
 
         const clickHandler = async () => {
             score += clickMultiplier;
             updateScoreDisplay();
-            await fetch('/api/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
-        };
-
-        document.getElementById('clickButton').addEventListener('click', clickHandler);
-        document.getElementById('clickButton').addEventListener('touchstart', (event) => {
-            if (event.touches.length === 2) {
-                clickHandler();
-            }
-        });
-
-        document.getElementById('toggleUpgradeMenuButton').addEventListener('click', () => {
-            const upgradeMenu = document.getElementById('upgradeMenu');
-            upgradeMenu.style.display = upgradeMenu.style.display=== 'none' ? 'block' : 'none';
-        });
-
-        document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
-            if (score >= clickUpgradeCost) {
-                score -= clickUpgradeCost;
-                clickMultiplier += 1;
-                clickUpgradeCost = Math.floor(clickUpgradeCost * 1.5);
-                updateScoreDisplay();
-                
-                await fetch('/api/upgrade', {
+            try {
+                const response = await fetch('/api/click', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ userId })
                 });
-
-                document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
-                document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
-            } else {
-                document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
+                // Обработка ответа от сервера
+            } catch (error) {
+                console.error('Ошибка при клике:', error);
             }
-        });
+        };
 
-        document.getElementById('startAutoClickerButton').addEventListener('click', async () => {
-            if (score >= 500) {
-                // Логика автокликера...
-            } else {
-                document.getElementById('autoClickerMessage').innerText = 'Недостаточно очков для автокликера!';
-            }
-        });
+        document.getElementById('clickButton').addEventListener('click', clickHandler);
 
-        // Запускаем
-        getUser();
+        // Инициализируем пользователя
+        getUser(); // Вызов для получения пользователя при загрузке
     </script>
 </body>
 </html>
