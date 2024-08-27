@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кликер</title>
+</head>
+<body>
+    <h1>Кликер</h1>
+    <button id="clickButton">Кликни меня!</button>
+    <p id="score">Твой счет: 0</p>
+
+    <script>
+        const button = document.getElementById('clickButton');
+        const scoreText = document.getElementById('score');
+        let score = 0; // Локальный счет
+
+        button.addEventListener('click', async () => {
+            const userId = 'uniqueUserId'; // Уникальный ID пользователя  
+
+            // Отправка запроса на сервер
+            const response = await fetch('/api/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId })
+            });
+
+            const data = await response.json();
+            score = data.score; // Обновление локального счета
+            scoreText.innerText = `Твой счет: ${score}`;
+        });
+    </script>
+</body>
+</html>
