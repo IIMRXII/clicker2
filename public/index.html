@@ -4,32 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кликер</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        button { padding: 10px 20px; font-size: 20px; }
+        h2 { margin-top: 20px; }
+    </style>
 </head>
 <body>
-    <h1>Кликер</h1>
+    <h1>Добро пожаловать в Кликер!</h1>
     <button id="clickButton">Кликни меня!</button>
-    <p id="score">Твой счет: 0</p>
+    <h2 id="scoreDisplay">Счет: 0</h2>
 
     <script>
-        const button = document.getElementById('clickButton');
-        const scoreText = document.getElementById('score');
-        let score = 0; // Локальный счет
+        let score = 0;
+        let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
 
-        button.addEventListener('click', async () => {
-            const userId = 'uniqueUserId'; // Уникальный ID пользователя  
+        // Генерируем userId, если его нет
+        if (!userId) {
+            userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
+            localStorage.setItem('userId', userId); // Сохраняем его
+        }
 
-            // Отправка запроса на сервер
+        document.getElementById('clickButton').addEventListener('click', async () => {
             const response = await fetch('/api/click', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId })
+                body: JSON.stringify({ userId }) // Отправляем userId серверу
             });
-
             const data = await response.json();
-            score = data.score; // Обновление локального счета
-            scoreText.innerText = `Твой счет: ${score}`;
+            score = data.score; // Обновляем счет
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
         });
     </script>
 </body>
