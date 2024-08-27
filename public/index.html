@@ -73,8 +73,8 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
-        // Обработчик события нажатия на кнопку
-        document.getElementById('clickButton').addEventListener('click', async () => {
+        // Обработчик события для клика одной кнопкой
+        const clickHandler = async () => {
             const response = await fetch('/api/click', {
                 method: 'POST',
                 headers: {
@@ -85,6 +85,16 @@
             const data = await response.json();
             score = data.score; // Обновляем счет
             document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        };
+
+        // Обработчик для одного касания
+        document.getElementById('clickButton').addEventListener('click', clickHandler);
+
+        // Обработчик для двух касаний
+        document.getElementById('clickButton').addEventListener('touchstart', (event) => {
+            if (event.touches.length === 2) {
+                clickHandler(); // Обрабатываем клик при двух касаниях
+            }
         });
     </script>
 </body>
