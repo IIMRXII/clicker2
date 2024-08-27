@@ -64,15 +64,6 @@
             }
         }, { passive: false });
 
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
         let score = 0;
         let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
 
@@ -82,7 +73,16 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
-        document.getElementById('clickButton').addEventListener('click', async () => {
+        const clickButton = document.getElementById('clickButton');
+        let lastClickTime = 0; // Время последнего клика
+        const debounceDelay = 1000; // Задержка в миллисекундах
+
+        clickButton.addEventListener('click', async () => {
+            const now = Date.now();
+            if (now - lastClickTime < debounceDelay) return; // Игнорируем клики слишком быстро
+
+            lastClickTime = now; // Обновляем время последнего клика
+
             const response = await fetch('/api/click', {
                 method: 'POST',
                 headers: {
