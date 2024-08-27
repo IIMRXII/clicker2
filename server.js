@@ -1,12 +1,9 @@
 require('dotenv').config(); // Подключаем dotenv
 const mongoose = require('mongoose');
 
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true, // Эта опция может быть оставлена, если вы используете её
-    // useUnifiedTopology: true // Убираем эту строку
-})
-.then(() => console.log('MongoDB connected...'))
-.catch(err => console.log('Error connecting to MongoDB:', err));
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB connected...'))
+    .catch(err => console.log('Error connecting to MongoDB:', err));
 
 // Определение схемы и модели для пользователя
 const userSchema = new mongoose.Schema({
