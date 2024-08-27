@@ -38,7 +38,8 @@
             margin-top: 20px;
             font-size: 2em;
             color: #e74c3c;
-        }footer {
+        }
+        footer {
             margin-top: 50px;
             font-size: 0.8em;
             color: #7f8c8d;
@@ -95,6 +96,7 @@
         };
 
         const clickHandler = async () => {
+            console.log('Кнопка клика нажата'); // Отладочная информация
             try {
                 const response = await fetch('/api/click', {
                     method: 'POST',
@@ -120,9 +122,11 @@
             }
         };
 
+        // Привязываем обработчик кликов к кнопке
         document.getElementById('clickButton').addEventListener('click', clickHandler);
 
         const upgradeHandler = async () => {
+            console.log('Кнопка улучшения нажата'); // Отладочная информация
             if (score >= clickUpgradeCost) {
                 try {
                     const response = await fetch('/api/upgrade', {
@@ -153,8 +157,10 @@
             }
         };
 
+        // Привязываем обработчик улучшений к кнопке
         document.getElementById('clickUpgradeButton').addEventListener('click', upgradeHandler);
 
+        // Инициализация пользователя
         const initializeUser = async () => {
             if (!userId) {
                 userId = Math.random().toString(36).substr(2, 9);
