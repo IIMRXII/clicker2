@@ -20,21 +20,22 @@
             color: #2c3e50;
         }
         button {
-            padding: 15px 30px;
-            font-size: 1.5em;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 10px;
+            padding: 0; /* Убираем padding */
+            background: none; /* Убираем фоновый цвет */
+            border: none; /* Убираем границу */
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+            border-radius: 10px; /* Закругление углов (по желанию) */
+            outline: none; /* Убираем контур */
+            display: inline-block; /* Позволяем задавать размеры */
+            width: 200px; /* Ширина кнопки (отрегулируйте по своему усмотрению) */
+            height: 200px; /* Высота кнопки (отрегулируйте по своему усмотрению) */
+            background-image: url(https://612611.selcdn.ru/prod-s3/iblock/239/239ddf22907deb5085a521af4018ae02/87cfb8ced36595303e5769abf668f0e2.jpg); /* Установите URL вашего изображения */
+            background-size: cover; /* Растягиваем изображение */
+            background-position: center; /* Центрируем изображение */
+            transition: transform 0.2s; /* Эффект при наведении */
         }
         button:hover {
-            background-color: #2980b9;
-            transform: scale(1.05);
-        }
-        button:active {
-            transform: scale(0.95);
+            transform: scale(1.05); /* Увеличиваем при наведении */
         }
         h2 {
             margin-top: 20px;
@@ -49,11 +50,11 @@
     </style>
 </head>
 <body>
-    <h1>Добро пожаловать в Кликер!</h1>
-    <button id="clickButton">Кликни меня!</button>
+    <h1>BRODILKA2024</h1>
+    <button id="clickButton"></button> <!-- Кнопка без текста, изображение будет как фон -->
     <h2 id="scoreDisplay">Счет: 0</h2>
     <footer>
-        <p>&copy; 2023 Ваш Кликер. Все права защищены.</p>
+        <p>&copy; 2024 Ваш Кликер. Все права защищены.</p>
     </footer>
 
     <script>
@@ -92,7 +93,10 @@
 
         // Обработчик для двух касаний
         document.getElementById('clickButton').addEventListener('touchstart', (event) => {
-            if (event.touches.length === 2) {
+            if (event
+
+> UniversusGPT Neurobot:
+.touches.length === 2) {
                 clickHandler(); // Обрабатываем клик при двух касаниях
             }
         });
