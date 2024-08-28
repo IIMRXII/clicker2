@@ -92,11 +92,16 @@
                 clickMultiplier = data.clickMultiplier;
                 clickUpgradeCost = data.clickUpgradeCost;
                 updateScoreDisplay();
+                updateUpgradeButtonText(); // Обновляем текст кнопки улучшений
             }
         };
 
         const updateScoreDisplay = () => {
             document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        };
+
+        const updateUpgradeButtonText = () => {
+            document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
         };
 
         document.getElementById('clickButton').addEventListener('click', async () => {
@@ -128,6 +133,7 @@
                 clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
                 clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
                 updateScoreDisplay();
+                updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
                 document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
