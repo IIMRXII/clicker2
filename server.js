@@ -13,7 +13,8 @@ mongoose.connect(dbURI)
     .then(() => {
         console.log('Успешное подключение к базе данных');
     })
-    .catch(err ={console.error('Ошибка подключения к базе данных:', err);
+    .catch(err ={
+        console.error('Ошибка подключения к базе данных:', err);
     });
 
 // Middleware для парсинга JSON
