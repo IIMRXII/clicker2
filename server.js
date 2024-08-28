@@ -13,7 +13,7 @@ mongoose.connect(dbURI)
     .then(() => {
         console.log('Успешное подключение к базе данных');
     })
-    .catch(err ={
+    .catch(err => {
         console.error('Ошибка подключения к базе данных:', err);
     });
 
