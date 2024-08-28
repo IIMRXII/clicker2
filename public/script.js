@@ -1,21 +1,20 @@
 let score = 0;
 let clickMultiplier = 1;
 let clickUpgradeCost = 100;
-let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
+let userId = localStorage.getItem('userId') || null; 
 let autoClickerActive = false;
-let autoClickerInterval; // Интервал для автокликера
-let autoClickerDuration = parseInt(localStorage.getItem('autoClickerDuration')) || 0; // Время работы автокликера из localStorage
-const maxOfflineTime = 3 * 60 * 60 * 1000; // 3 часа в миллисекундах
+let autoClickerInterval; 
+let autoClickerDuration = parseInt(localStorage.getItem('autoClickerDuration')) || 0; 
+const maxOfflineTime = 3 * 60 * 60 * 1000; 
 
-// Генерируем userId, если его нет
 if (!userId) {
-    userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
-    localStorage.setItem('userId', userId); // Сохраняем его
+    userId = Math.random().toString(36).substr(2, 9); 
+    localStorage.setItem('userId', userId);
 }
 
-// Убедимся, что модальное окно скрыто
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('upgradeModal').style.display = 'none'; // Скрыть меню при загрузке
+    document.getElementById('upgradeModal').style.display = 'none'; 
+    loadUserData(); // Загрузка данных пользователя
 });
 
 // Функция для загрузки данных пользователя
@@ -29,16 +28,30 @@ const loadUserData = async () => {
         score = data.score;
         clickMultiplier = data.clickMultiplier;
         clickUpgradeCost = data.clickUpgradeCost;
+        autoClickerDuration = data.autoClickerDuration || 0;
         updateScoreDisplay();
-        updateUpgradeButtonText(); // Обновляем текст кнопки улучшений
-        updateAutoClickerStatus(); // Обновляем статус автокликера
+        updateUpgradeButtonText(); 
+        updateAutoClickerStatus(); 
 
-        // Проверяем, активен ли автокликер
         if (autoClickerActive) {
             startAutoClicker();
+        } else {
+            // Проверяем, нужно ли выполнить автоклики за офлайн-время
+            handleOfflineClicks();
         }
     } catch (error) {
         console.error(error);
+    }
+};
+
+const handleOfflineClicks = () => {
+    const offlineTime = Date.now() - (localStorage.getItem('lastOnlineTimestamp') || Date.now());
+    if (offlineTime > 0 && offlineTime <= maxOfflineTime) {
+        const clicks = Math.floor(offlineTime / 1000) * clickMultiplier; // 1 клик за секунду
+        score += clicks; // Увеличиваем счет
+        localStorage.setItem('lastOfflineClicks', clicks); // Сохраняем количество кликов в локальном хранилище
+        updateScoreDisplay();
+        alert(`Вы получили ${clicks} очков за оффлайн время!`);
     }
 };
 
@@ -47,14 +60,14 @@ const updateScoreDisplay = () => {
 };
 
 const updateUpgradeButtonText = () => {
-document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+    document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
 };
 
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
     document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
-    document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
+    document.getElementById('autoClickerButton').disabled = autoClickerActive;
 };
 
 const formatTime = (time) => {
@@ -72,7 +85,7 @@ document.getElementById('clickButton').addEventListener('click', async () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ userId }) // Отправляем userId серверу
+            body: JSON.stringify({ userId })
         });
 
         if (!response.ok) {
@@ -80,7 +93,8 @@ document.getElementById('clickButton').addEventListener('click', async () => {
         }
 
         const data = await response.json();
-        score = data.score; // Обновляем счет
+        score = data.score; 
+        localStorage.setItem('lastOnlineTimestamp', Date.now()); // Обновляем время последнего подключения
         updateScoreDisplay();
     } catch (error) {
         console.error(error);
@@ -96,7 +110,7 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId }) // Отправляем userId серверу
+                body: JSON.stringify({ userId })
             });
 
             if (!response.ok) {
@@ -104,45 +118,44 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
             }
 
             const data = await response.json();
-            score = data.score; // Обновляем счет
-            clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
-            clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
-            updateScoreDisplay();
-            updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
-            document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+            score = data.score; 
+            clickMultiplier = data.clickMultiplier; 
+            clickUpgradeCost = data.clickUpgradeCost; 
+            updateScoreDisplay(); 
+            updateUpgradeButtonText(); 
         } catch (error) {
             console.error(error);
-            document.getElementById('upgradeMessage').innerText = 'Ошибка при улучшении!';
         }
-    } else {
-        document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
     }
 });
 
-// Открытие модального окна
-document.getElementById('openUpgradeButton').onclick = () => {
-    document.getElementById('upgradeModal').style.display = 'block'; 
-};
-
-// Закрытие модального окна
-document.getElementById('closeModal').onclick = () => {
-    document.getElementById('upgradeModal').style.display = 'none'; 
-};
-
-// Закрытие модального окна при клике вне его
-window.onclick = (event) => {
-    if (event.target === document.getElementById('upgradeModal')) {
-        document.getElementById('upgradeModal').style.display = 'none'; 
-    }
-};
-
-// Определите функцию для автокликера
+// Функция, чтобы стартовать автокликер
 const startAutoClicker = () => {
+    if (autoClickerInterval) return; // Если уже работает автокликер, ничего не делаем
+    autoClickerActive = true;
     autoClickerInterval = setInterval(() => {
-        score += clickMultiplier; // Добавляем очки в зависимости от множителя
+        score += clickMultiplier; // Увеличиваем счет на значение множителя
+        autoClickerDuration += 1000; // Увеличиваем длительность автокликера
         updateScoreDisplay();
-    }, 1000); // Интервал автокликера (например, 1 секунда)
+        updateAutoClickerStatus();
+        
+        if (autoClickerDuration >= maxOfflineTime) { // Если превысили время, останавливаем автокликер
+            stopAutoClicker();
+        }
+    }, 1000); // Каждую секунду добавляем очки
 };
 
-// Загружаем данные пользователя при загрузке страницы
-loadUserData();
+const stopAutoClicker = () => {
+    clearInterval(autoClickerInterval);
+    autoClickerInterval = null;
+    autoClickerActive = false;
+    localStorage.setItem('autoClickerDuration', autoClickerDuration); // Сохраняем длительность автокликера
+    updateAutoClickerStatus();
+};
+
+// Кнопка для активации автокликера
+document.getElementById('autoClickerButton').addEventListener('click', () => {
+    if (!autoClickerActive) {
+        startAutoClicker(); // Запускаем автокликер
+    }
+});
