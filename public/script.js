@@ -13,6 +13,11 @@ if (!userId) {
     localStorage.setItem('userId', userId); // Сохраняем его
 }
 
+// Убедимся, что модальное окно скрыто
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('upgradeModal').style.display = 'none'; // Скрыть меню при загрузке
+});
+
 // Функция для загрузки данных пользователя
 const loadUserData = async () => {
     const response = await fetch(`/api/user/${userId}`);
@@ -63,7 +68,7 @@ document.getElementById('clickButton').addEventListener('click', async () => {
         },
         body: JSON.stringify({ userId }) // Отправляем userId серверу
     });
-const data = await response.json();
+    const data = await response.json();
     score = data.score; // Обновляем счет
     updateScoreDisplay();
 });
@@ -118,7 +123,7 @@ document.getElementById('autoClickerButton').onclick = () => {
             updateAutoClickerStatus();
             startAutoClicker(); // Запускаем автокликер
         } else {
-            alert('Недостаточно очков для покупки автокликера!');
+            alert('Недостаточно очков дляпокупки автокликера!');
         }
     }
 };
@@ -139,7 +144,7 @@ const startAutoClicker = () => {
             autoClickerActive = false;
             updateAutoClickerStatus();
         } else {
-            document.getElementById('autoClickerTime').innerText = Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)};
+            document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
         }
     }, 1000); // Каждую секунду
 };
