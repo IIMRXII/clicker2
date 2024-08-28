@@ -1,159 +1,148 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const registerButton = document.getElementById('register-button');
-    const loginButton = document.getElementById('login-button');
-    const clickButton = document.getElementById('click-button');
-    const usernameInput = document.getElementById('username');
-    const passwordInput = document.getElementById('password');
-    const clickArea = document.getElementById('click-area');
-    const greeting = document.getElementById('greeting');
-    const scoreText = document.getElementById('score');
-    const adminArea = document.getElementById('admin-area');
-    const userTableBody = document.getElementById('user-table-body');
+let score = 0;
+let clickMultiplier = 1;
+let clickUpgradeCost = 100;
+let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
+let autoClickerActive = false;
+let autoClickerInterval; // Интервал для автокликера
+let autoClickerDuration = parseInt(localStorage.getItem('autoClickerDuration')) || 0; // Время работы автокликера из localStorage
+const maxOfflineTime = 3 * 60 * 60 * 1000; // 3 часа в миллисекундах
 
-    let userId;
-    let isAdmin = false;
+// Генерируем userId, если его нет
+if (!userId) {
+    userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
+    localStorage.setItem('userId', userId); // Сохраняем его
+}
 
-    // Регистрация
-    registerButton.addEventListener('click', async () => {
-        const response = await fetch('/api/users/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',},
-            body: JSON.stringify({
-                username: usernameInput.value,
-                password: passwordInput.value
-            }),
-        });
-
-        if (response.ok) {
-            alert('Пользователь зарегистрирован!');
-        } else {
-            alert('Ошибка при регистрации: ' + await response.text());
-        }
-    });
-
-    // Авторизация
-    loginButton.addEventListener('click', async () => {
-        const response = await fetch('/api/users/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username: usernameInput.value,
-                password: passwordInput.value
-            }),
-        });
-
-        if (response.ok) {
-            const user = await response.json();
-            userId = user._id;
-            isAdmin = user.isAdmin;
-            clickArea.style.display = 'block';
-            greeting.innerText = `Привет, ${usernameInput.value}!`;
-            alert('Успешная авторизация!');
-
-            // Если пользователь администратор, показываем пользователей
-            if (isAdmin) {
-                adminArea.style.display = 'block'; // Показываем область администратора
-                fetchUsers(); // Загружаем пользователей
-            }
-        } else {
-            alert('Ошибка при авторизации: ' + await response.text());
-        }
-    });
-
-    // Загрузка данных пользователей (для администраторов)
-    async function fetchUsers() {
-        const response = await fetch('/api/admin/users');
-        if (response.ok) {
-            const users = await response.json();
-            populateUserTable(users); // Заполняем таблицу пользователей
-        } else {
-            alert('Ошибка при получении данных пользователей!');
-        }
-    }
-
-    // Заполнение таблицы пользователей
-    function populateUserTable(users) {
-        userTableBody.innerHTML = ''; // Очищаем таблицу
-        users.forEach(user => {
-            const row = document.createElement('tr');
-            const idCell = document.createElement('td');
-            const usernameCell = document.createElement('td');
-            const scoreCell = document.createElement('td');
-            const roleCell = document.createElement('td');
-            const actionCell = document.createElement('td'); // Новая ячейка для действий
-
-            idCell.innerText = user._id;
-            usernameCell.innerText = user.username;
-            scoreCell.innerText = user.score;
-            roleCell.innerText = user.isAdmin ? 'Администратор' : 'Пользователь';
-
-            // Создаем кнопку для редактирования
-            const editButton = document.createElement('button');
-            editButton.innerText = 'Редактировать';
-            editButton.addEventListener('click', () => {
-                document.getElementById('edit-user-id').value = user._id; // Заполняем ID пользователя
-                document.getElementById('edit-score').value = user.score; // Заполняем текущий счет
-                document.getElementById('edit-user').style.display = 'block'; // Показываем форму редактирования
-            });
-
-            actionCell.appendChild(editButton); // Добавляем кнопку редактирования в ячейку
-            row.appendChild(idCell);
-            row.appendChild(usernameCell);
-            row.appendChild(scoreCell);
-            row.appendChild(roleCell);
-            row.appendChild(actionCell); // Добавляем ячейку действий
-            userTableBody.appendChild(row);
-        });
-    }
-
-    // Обновление счета
-    const updateButton = document.getElementById('update-button');
-    updateButton.addEventListener('click', async () => {
-        const userId = document.getElementById('edit-user-id').value;
-        const newScore = document.getElementById('edit-score').value;
-
-        const response = await fetch(`/api/admin/users/${userId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',},
-            body: JSON.stringify({ score: newScore })
-        });
-
-        if (response.ok) {
-            alert('Счет обновлён!');
-            fetchUsers(); // Перезагружаем пользователей, чтобы обновить данные
-            document.getElementById('edit-user').style.display = 'none'; // Скрываем форму редактирования
-        } else {
-            alert('Ошибка при обновлении счета: ' + await response.text());
-        }
-    });
-
-    // Клик
-    clickButton.addEventListener('click', async () => {
-        const response = await fetch('/api/click/click', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: userId,
-            }),
-        });
-
-        if (response.ok) {
-            await updateScore();
-        } else {
-            alert('Ошибка при клике!');
-        }
-    });
-
-    // Обновление счета
-    async function updateScore() {
-        const response = await fetch(`/api/click/${userId}`);
+// Функция для загрузки данных пользователя
+const loadUserData = async () => {
+    const response = await fetch(`/api/user/${userId}`);
+    if (response.ok) {
         const data = await response.json();
-        scoreText.innerText = `Твой счет: ${data.score}`;
+        score = data.score;
+        clickMultiplier = data.clickMultiplier;
+        clickUpgradeCost = data.clickUpgradeCost;
+        updateScoreDisplay();
+        updateUpgradeButtonText(); // Обновляем текст кнопки улучшений
+        updateAutoClickerStatus(); // Обновляем статус автокликера
+
+        // Проверяем, активен ли автокликер
+        if (autoClickerActive) {
+            startAutoClicker();
+        }
+    }
+};
+
+const updateScoreDisplay = () => {
+    document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+};
+
+const updateUpgradeButtonText = () => {
+    document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+};
+
+const updateAutoClickerStatus = () => {
+    const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
+    document.getElementById('autoClickerStatus').innerText = status;
+    document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
+    document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
+};
+
+const formatTime = (time) => {
+    const hours = Math.floor((time / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((time / (1000 * 60)) % 60);
+    const seconds = Math.floor((time / 1000) % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+// Обработчик клика по кнопке
+document.getElementById('clickButton').addEventListener('click', async () => {
+    const response = await fetch('/api/click', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId }) // Отправляем userId серверу
+    });
+const data = await response.json();
+    score = data.score; // Обновляем счет
+    updateScoreDisplay();
+});
+
+// Обработчик улучшений
+document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
+    if (score >= clickUpgradeCost) {
+        const response = await fetch('/api/upgrade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId }) // Отправляем userId серверу
+        });
+
+        const data = await response.json();
+        score = data.score; // Обновляем счет
+        clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
+        clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+        updateScoreDisplay();
+        updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
+        document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+    } else {
+        document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
     }
 });
+
+// Открытие модального окна
+document.getElementById('openUpgradeButton').onclick = () => {
+    document.getElementById('upgradeModal').style.display = 'block'; 
+}
+
+// Закрытие модального окна
+document.getElementById('closeModal').onclick = () => {
+    document.getElementById('upgradeModal').style.display = 'none'; 
+}
+
+// Закрытие модального окна при клике вне его
+window.onclick = (event) => {
+    if (event.target === document.getElementById('upgradeModal')) {
+        document.getElementById('upgradeModal').style.display = 'none'; 
+    }
+}
+
+// Функция для активации автокликера
+document.getElementById('autoClickerButton').onclick = () => {
+    if (!autoClickerActive) {
+        if (score >= 1000) {
+            score -= 1000; // Снимаем стоимость
+            updateScoreDisplay();
+            autoClickerActive = true; // Делаем автокликер активным
+            updateAutoClickerStatus();
+            startAutoClicker(); // Запускаем автокликер
+        } else {
+            alert('Недостаточно очков для покупки автокликера!');
+        }
+    }
+};
+
+const startAutoClicker = () => {
+    autoClickerInterval = setInterval(() => {
+        // Увеличиваем счет
+        score += clickMultiplier; // Увеличиваем счет за каждую итерацию
+        updateScoreDisplay();
+
+        // Увеличиваем время работы автокликера
+        autoClickerDuration += 1000;
+        localStorage.setItem('autoClickerDuration', autoClickerDuration); // Сохраняем текущую длительность
+
+        // Проверяем время
+        if (autoClickerDuration >= maxOfflineTime) {
+            clearInterval(autoClickerInterval);
+            autoClickerActive = false;
+            updateAutoClickerStatus();
+        } else {
+            document.getElementById('autoClickerTime').innerText = Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)};
+        }
+    }, 1000); // Каждую секунду
+};
+
+// Загружаем данные пользователя при загрузке страницы
+loadUserData(); 
