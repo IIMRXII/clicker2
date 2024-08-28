@@ -61,7 +61,7 @@ const formatTime = (time) => {
 
 // Обработчик клика по кнопке
 document.getElementById('clickButton').addEventListener('click', async () => {
-    const response = await fetch('/api/click', {
+    const response = awaitfetch('/api/click', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -123,7 +123,7 @@ document.getElementById('autoClickerButton').onclick = () => {
             updateAutoClickerStatus();
             startAutoClicker(); // Запускаем автокликер
         } else {
-            alert('Недостаточно очков дляпокупки автокликера!');
+            alert('Недостаточно очков для покупки автокликера!');
         }
     }
 };
@@ -144,10 +144,10 @@ const startAutoClicker = () => {
             autoClickerActive = false;
             updateAutoClickerStatus();
         } else {
-            document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
+            document.getElementById('autoClickerTime').innerText = Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)};
         }
     }, 1000); // Каждую секунду
 };
 
 // Загружаем данные пользователя при загрузке страницы
-loadUserData(); 
+loadUserData();
