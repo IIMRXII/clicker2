@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кликер</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            margin-top: 50px; 
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
         }
-        button { 
-            padding: 10px 20px; 
-            font-size: 20px; 
+        button {
+            padding: 10px 20px;
+            font-size: 20px;
+            margin-top: 20px;
         }
-        h2 { 
-            margin-top: 20px; 
+        h2 {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -24,8 +25,16 @@
     <button id="clickButton">Кликни меня!</button>
     <h2 id="scoreDisplay">Счет: 0</h2>
 
+    <h2>Улучшения:</h2>
+    <div id="upgradeMenu">
+        <button id="clickUpgradeButton">Улучшить клики (100 очков)</button>
+        <p id="upgradeMessage"></p>
+    </div>
+
     <script>
         let score = 0;
+        let clickMultiplier = 1;
+        let clickUpgradeCost = 100;
         let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
 
         // Генерируем userId, если его нет
@@ -35,8 +44,22 @@
         }
 
         document.getElementById('clickButton').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/click', {
+            const response = await fetch('/api/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId }) // Отправляем userId серверу
+            });
+            const data = await response.json();
+            score = data.score; // Обновляем счет
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        });
+
+        // Обработчик улучшений
+        document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
+            if (score >= clickUpgradeCost) {
+                const response = await fetch('/api/upgrade', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -44,17 +67,24 @@
                     body: JSON.stringify({ userId }) // Отправляем userId серверу
                 });
 
-                if (!response.ok) {
-                    throw new Error('Ошибка при получении обновленного счета');
-                }
-
                 const data = await response.json();
                 score = data.score; // Обновляем счет
-                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`; // Исправлено на использование обратных кавычек
-            } catch (error) {
-                console.error('Ошибка:', error);
+                clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
+                clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+                document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+            } else {
+                document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
             }
+            updateUpgradeButtonText();
         });
+
+        const updateUpgradeButtonText = () => {
+            document.getElementById('clickUpgradeButton').innerText = 
+                `Улучшить клики (${clickUpgradeCost} очков)`;
+        };
+
+        updateUpgradeButtonText(); // Инициализация текста кнопки при загрузке
     </script>
 </body>
 </html>
