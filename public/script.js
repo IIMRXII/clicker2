@@ -144,7 +144,7 @@ const startAutoClicker = () => {
             autoClickerActive = false;
             updateAutoClickerStatus();
         } else {
-            document.getElementById('autoClickerTime').innerText = Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)};
+            document.getElementById('autoClickerTime').innerText = 'Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}';
         }
     }, 1000); // Каждую секунду
 };
