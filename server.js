@@ -5,17 +5,13 @@ const { v4: uuidv4 } = require('uuid'); // Импортируем библиот
 const path = require('path'); // Подключаем модуль для работы с путями
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Подключение к MongoDB
 const dbURI = process.env.MONGODB_URI;
 mongoose.connect(dbURI)
   .then(() => {
     console.log('Успешное подключение к базе данных');
-  })
-  .catch(err => {
-    console.error('Ошибка подключения к базе данных:', err);
-  });
 
 // Middleware для парсинга JSON
 app.use(express.json());
@@ -40,10 +36,6 @@ app.post('/api/click', async (req, res) => {
 
     try {
         let clickedUser = await Click.findOne({ userId });
-        if (!clickedUser) {
-            clickedUser = new Click({ userId, score: 0 });
-        }
-        
         clickedUser.score += 1; // Увеличиваем счет
         await clickedUser.save(); // Сохраняем изменения
 
@@ -51,10 +43,3 @@ app.post('/api/click', async (req, res) => {
         res.json({ userId: clickedUser.userId, score: clickedUser.score });
     } catch (error) {
         res.status(500).json({ error: 'Ошибка обработки клика' });
-    }
-});
-
-// Запуск сервера
-app.listen(PORT, () => {
-    console.log(`Сервер запущен на http://localhost:${PORT}`);
-});
