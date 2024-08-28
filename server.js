@@ -10,8 +10,12 @@ const PORT = process.env.PORT || 3000;
 // Подключение к MongoDB
 const dbURI = process.env.MONGODB_URI;
 mongoose.connect(dbURI)
-  .then(() => {
-    console.log('Успешное подключение к базе данных');
+    .then(() => {
+        console.log('Успешное подключение к базе данных');
+    })
+    .catch(err => {
+        console.error('Ошибка подключения к базе данных:', err);
+    });
 
 // Middleware для парсинга JSON
 app.use(express.json());
@@ -29,17 +33,31 @@ const Click = mongoose.model('Click', clickSchema);
 app.post('/api/click', async (req, res) => {
     let { userId } = req.body;
 
-    // Если userId не передан, создаем новый
+    // Если userId не передан, создаем новый документ
     if (!userId) {
         userId = uuidv4(); // Генерируем уникальный ID
     }
 
     try {
         let clickedUser = await Click.findOne({ userId });
+
+        if (!clickedUser) {
+            // Если не нашли пользователя, создаем нового
+            clickedUser = new Click({ userId });
+        }
+
         clickedUser.score += 1; // Увеличиваем счет
         await clickedUser.save(); // Сохраняем изменения
 
         // Отправляем ответ с ID и счетом
         res.json({ userId: clickedUser.userId, score: clickedUser.score });
     } catch (error) {
+        console.error('Ошибка обработки клика:', error);
         res.status(500).json({ error: 'Ошибка обработки клика' });
+    }
+});
+
+// Запуск сервера
+app.listen(PORT, () => {
+    console.log(`Сервер запущен на порту ${PORT}`);
+});
