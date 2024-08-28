@@ -5,153 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кликер</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f8ff;
-            color: #333;
-            touch-action: manipulation; /* Блокируем масштабирование */
-        }
-        h1 {
-            margin-top: 50px;
-            font-size: 2.5em;
-            color: #2c3e50;
-        }
-        #clickButton {
-            padding: 0;
-            background: none;
-            border: none;
-            cursor: pointer;
-            border-radius: 10px;
-            outline: none;
-            display: inline-block;
-            width: 200px;
-            height: 200px;
-            background-image: url('https://avatanplus.com/files/resources/original/571b4993ca40b15442976974.png'); /* Замените на ваше изображение */
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.2s;
-        }
-        #clickButton:hover {
-            transform: scale(1.05);
-        }
-        h2 {
-            margin-top: 20px;
-            font-size: 2em;
-            color: #e74c3c;
-        }
-        footer {
-            margin-top: 50px;
-            font-size: 0.8em;
-            color: #7f8c8d;
-        }
-        #upgradeMenu {
-            margin-top: 30px;
-            display: none;
-        }
-        .upgrade-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-        .upgrade-button:hover {
-            background-color: #2980b9;
-            transform: scale(1.05);
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        button { padding: 10px 20px; font-size: 20px; }
+        h2 { margin-top: 20px; }
     </style>
 </head>
 <body>
     <h1>Добро пожаловать в Кликер!</h1>
-    <button id="clickButton"></button>
+    <button id="clickButton">Кликни меня!</button>
     <h2 id="scoreDisplay">Счет: 0</h2>
 
-    <h2>Улучшения:</h2>
-    <div id="upgradeMenu">
-        <button class="upgrade-button" id="clickUpgradeButton">Улучшить клики (100 очков)</button>
-        <p id="upgradeMessage"></p>
-    </div>
-
-    <button class="upgrade-button" id="toggleUpgradeMenuButton">Показать/Скрыть меню улучшений</button>
-    
-    <h2>Автокликер:</h2>
-    <button class="upgrade-button" id="startAutoClickerButton">Запустить автокликер (500 очков)</button>
-    <p id="autoClickerMessage"></p>
-
-    <footer>
-        <p>&copy; 2023 Ваш Кликер. Все права защищены.</p>
-    </footer>
-
     <script>
-        // Блокируем масштабирование при сенсорном взаимодействии
-        window.addEventListener('touchmove', function(event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
-
         let score = 0;
-        let clickMultiplier = 1;
-        let clickUpgradeCost = 100;
-        let userId = localStorage.getItem('userId');
+        let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
 
-        // Получаем или создаем пользователя
-        const getUser = async () => {
-            if (!userId) {
-                userId = Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('userId', userId);
-            }
-            const response = await fetch('/api/user', {
+        // Генерируем userId, если его нет
+        if (!userId) {
+            userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
+            localStorage.setItem('userId', userId); // Сохраняем его
+        }
+
+        document.getElementById('clickButton').addEventListener('click', async () => {
+            const response = await fetch('/api/click', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ userId })
+                body: JSON.stringify({ userId }) // Отправляем userId серверу
             });
-
-            if (!response.ok) {
-                console.error('Ошибка при получении пользователя:', response.statusText);
-                return;
-            }
-
-            const user = await response.json();
-            score = user.score;
-            clickMultiplier = user.clickMultiplier;
-            clickUpgradeCost = user.clickUpgradeCost;
-            updateScoreDisplay();
-        };
-
-        const updateScoreDisplay = () => {
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`; // Исправлено: добавлены обратные кавычки
-        };
-
-        const clickHandler = async () => {
-            score += clickMultiplier;
-            updateScoreDisplay();
-            try {
-                const response = await fetch('/api/click', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userId })
-                });
-                // Обработка ответа от сервера
-            } catch (error) {
-                console.error('Ошибка при клике:', error);
-            }
-        };
-
-        document.getElementById('clickButton').addEventListener('click', clickHandler);
-
-        // Инициализируем пользователя
-        getUser(); // Вызов для получения пользователя при загрузке
+            const data = await response.json();
+            score = data.score; // Обновляем счет
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        });
     </script>
 </body>
 </html>
