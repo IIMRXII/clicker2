@@ -20,8 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Функция для загрузки данных пользователя
 const loadUserData = async () => {
-    const response = await fetch(`/api/user/${userId}`);
-    if (response.ok) {
+    try {
+        const response = await fetch(`/api/user/${userId}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при загрузке данных пользователя');
+        }
         const data = await response.json();
         score = data.score;
         clickMultiplier = data.clickMultiplier;
@@ -34,6 +37,8 @@ const loadUserData = async () => {
         if (autoClickerActive) {
             startAutoClicker();
         }
+    } catch (error) {
+        console.error(error);
     }
 };
 
@@ -42,7 +47,7 @@ const updateScoreDisplay = () => {
 };
 
 const updateUpgradeButtonText = () => {
-    document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
 };
 
 const updateAutoClickerStatus = () => {
@@ -61,22 +66,8 @@ const formatTime = (time) => {
 
 // Обработчик клика по кнопке
 document.getElementById('clickButton').addEventListener('click', async () => {
-    const response = await fetch('/api/click', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId }) // Отправляем userId серверу
-    });
-    const data = await response.json();
-    score = data.score; // Обновляем счет
-    updateScoreDisplay();
-});
-
-// Обработчик улучшений
-document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
-    if (score >= clickUpgradeCost) {
-        const response = await fetch('/api/upgrade', {
+    try {
+        const response = await fetch('/api/click', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -84,13 +75,45 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
             body: JSON.stringify({ userId }) // Отправляем userId серверу
         });
 
+        if (!response.ok) {
+            throw new Error('Ошибка при выполнении запроса на клик');
+        }
+
         const data = await response.json();
         score = data.score; // Обновляем счет
-        clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
-        clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
         updateScoreDisplay();
-        updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
-        document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+    } catch (error) {
+        console.error(error);
+    }
+});
+
+// Обработчик улучшений
+document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
+    if (score >= clickUpgradeCost) {
+        try {
+            const response = await fetch('/api/upgrade', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId }) // Отправляем userId серверу
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка при выполнении запроса на улучшение');
+            }
+
+            const data = await response.json();
+            score = data.score; // Обновляем счет
+            clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
+            clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+            updateScoreDisplay();
+            updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
+            document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+        } catch (error) {
+            console.error(error);
+            document.getElementById('upgradeMessage').innerText = 'Ошибка при улучшении!';
+        }
     } else {
         document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
     }
@@ -99,54 +122,26 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
 // Открытие модального окна
 document.getElementById('openUpgradeButton').onclick = () => {
     document.getElementById('upgradeModal').style.display = 'block'; 
-}
+};
 
 // Закрытие модального окна
 document.getElementById('closeModal').onclick = () => {
     document.getElementById('upgradeModal').style.display = 'none'; 
-}
+};
 
 // Закрытие модального окна при клике вне его
 window.onclick = (event) => {
     if (event.target === document.getElementById('upgradeModal')) {
         document.getElementById('upgradeModal').style.display = 'none'; 
     }
-}
-
-// Функция для активации автокликера
-document.getElementById('autoClickerButton').onclick = () => {
-    if (!autoClickerActive) {
-        if (score >= 1000) {
-            score -= 1000; // Снимаем стоимость
-            updateScoreDisplay();
-            autoClickerActive = true; // Делаем автокликер активным
-            updateAutoClickerStatus();
-            startAutoClicker(); // Запускаем автокликер
-        } else {
-            alert('Недостаточно очков для покупки автокликера!');
-        }
-    }
 };
 
+// Определите функцию для автокликера
 const startAutoClicker = () => {
     autoClickerInterval = setInterval(() => {
-        // Увеличиваем счет
-        score += clickMultiplier; // Увеличиваем счет за каждую итерацию
+        score += clickMultiplier; // Добавляем очки в зависимости от множителя
         updateScoreDisplay();
-
-        // Увеличиваем время работы автокликера
-        autoClickerDuration += 1000;
-        localStorage.setItem('autoClickerDuration', autoClickerDuration); // Сохраняем текущую длительность
-
-        // Проверяем время
-        if (autoClickerDuration >= maxOfflineTime) {
-            clearInterval(autoClickerInterval);
-            autoClickerActive = false;
-            updateAutoClickerStatus();
-        } else {
-            document.getElementById('autoClickerTime').innerText = 'Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}';
-        }
-    }, 1000); // Каждую секунду
+    }, 1000); // Интервал автокликера (например, 1 секунда)
 };
 
 // Загружаем данные пользователя при загрузке страницы
