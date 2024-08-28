@@ -1,134 +1,134 @@
 let score = 0;
 let clickMultiplier = 1;
 let clickUpgradeCost = 100;
-let autoClickerCost = 500; // Стоимость автокликера
-let userId = localStorage.getItem('userId') || null;
+let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
 let autoClickerActive = false;
-let autoClickerInterval;
-let offlineClicks = 0; // Количество кликов во время оффлайна
-let lastClickTime = localStorage.getItem('lastClickTime') ? new Date(localStorage.getItem('lastClickTime')) : new Date();
-const maxOfflineTime = 3 * 60 * 60 * 1000; // Максимальное время в оффлайне
-
+let autoClickerInterval; // Интервал для автокликера
+let autoClickerDuration = parseInt(localStorage.getItem('autoClickerDuration')) || 0; // Время работы автокликера из localStorage
+const maxOfflineTime = 3 * 60 * 60 * 1000; // 3 часа в миллисекундах
+// Генерируем userId, если его нет
 if (!userId) {
-    userId = Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('userId', userId);
+    userId = Math.random().toString(36).substr(2, 9); // Генерация случайного userId
+    localStorage.setItem('userId', userId); // Сохраняем его
 }
-
+// Убедимся, что модальное окно скрыто
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('upgradeModal').style.display = 'none'; 
-    loadUserData(); 
-    handleOfflineClicks(); // Обрабатываем оффлайн клики при загрузке
+    document.getElementById('upgradeModal').style.display = 'none'; // Скрыть меню при загрузке
 });
-
-// Загружаем данные пользователя
+// Функция для загрузки данных пользователя
 const loadUserData = async () => {
-    try {
-        const response = await fetch(`/api/user/${userId}`);
-        if (!response.ok) throw new Error('Ошибка при загрузке данных пользователя');
-        
+    const response = await fetch(`/api/user/${userId}`);
+    if (response.ok) {
         const data = await response.json();
         score = data.score;
         clickMultiplier = data.clickMultiplier;
         clickUpgradeCost = data.clickUpgradeCost;
-        
         updateScoreDisplay();
-        updateUpgradeButtonText();
-        updateAutoClickerStatus();
-    } catch (error) {
-        console.error(error);
+        updateUpgradeButtonText(); // Обновляем текст кнопки улучшений
+        updateAutoClickerStatus(); // Обновляем статус автокликера
+        // Проверяем, активен ли автокликер
+        if (autoClickerActive) {
+            startAutoClicker();
+        }
     }
 };
-
-const handleOfflineClicks = () => {
-    const currentTime = new Date();
-    const timeDiff = currentTime - new Date(lastClickTime);
-    const secondsOffline = Math.floor(timeDiff / 1000);
-
-    if (secondsOffline > 0 && secondsOffline <= maxOfflineTime / 1000) {
-        offlineClicks += secondsOffline * clickMultiplier; // Считаем количество кликов
-        score += offlineClicks; // Учитываем оффлайн клики в общем счете
-        localStorage.setItem('offlineClicks', offlineClicks); // Сохраняем оффлайн клики
-        updateScoreDisplay(); // Обновляем отображение счета
-        alert(`Вы получили ${offlineClicks} очков за оффлайн время!`);
-    }
-
-    lastClickTime = currentTime; // Обновляем время последнего клика
-    localStorage.setItem('lastClickTime', lastClickTime); // Сохраняем его
-};
-
 const updateScoreDisplay = () => {
     document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
 };
-
 const updateUpgradeButtonText = () => {
     document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
-    document.getElementById('autoClickerButton').innerText = `Купить автокликер (${autoClickerCost} очков)`;
 };
-
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
+    document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
+    document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
 };
-
+const formatTime = (time) => {
+    const hours = Math.floor((time / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((time / (1000 * 60)) % 60);
+    const seconds = Math.floor((time / 1000) % 60);
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+// Обработчик клика по кнопке
 document.getElementById('clickButton').addEventListener('click', async () => {
-    try {
-        const response = await fetch('/api/click', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId })
-        });
-
-        if (!response.ok) throw new Error('Ошибка при выполнении запроса на клик');
-        
-        const data = await response.json();
-        score = data.score; 
-        updateScoreDisplay();
-        lastClickTime = new Date(); // Обновляем время последнего клика
-        localStorage.setItem('lastClickTime', lastClickTime);
-    } catch (error) {
-        console.error(error);
-    }
+    const response = awaitfetch('/api/click', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId }) // Отправляем userId серверу
+    });
+    const data = await response.json();
+    score = data.score; // Обновляем счет
+    updateScoreDisplay();
 });
-
+// Обработчик улучшений
 document.getElementById('clickUpgradeButton').addEventListener('click', async () => {
     if (score >= clickUpgradeCost) {
-        try {
-            const response = await fetch('/api/upgrade', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ userId })
-            });
-
-            if (!response.ok) throw new Error('Ошибка при выполнении запроса на улучшение');
-            
-            const data = await response.json();
-            score = data.score; 
-            clickMultiplier = data.clickMultiplier; 
-            clickUpgradeCost = data.clickUpgradeCost; 
-
-            updateScoreDisplay();
-            updateUpgradeButtonText();
-        } catch (error) {
-            console.error(error);
-        }
+        const response = await fetch('/api/upgrade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId }) // Отправляем userId серверу
+        });
+        const data = await response.json();
+        score = data.score; // Обновляем счет
+        clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
+        clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+        updateScoreDisplay();
+        updateUpgradeButtonText(); // Обновляем текст кнопки после улучшения
+        document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
+    } else {
+        document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
     }
 });
-
-document.getElementById('autoClickerButton').addEventListener('click', async () => {
-    if (score >= autoClickerCost) {
-        try {
-            score -= autoClickerCost; 
-            autoClickerActive = true; // Активируем автокликер
+// Открытие модального окна
+document.getElementById('openUpgradeButton').onclick = () => {
+    document.getElementById('upgradeModal').style.display = 'block'; 
+}
+// Закрытие модального окна
+document.getElementById('closeModal').onclick = () => {
+    document.getElementById('upgradeModal').style.display = 'none'; 
+}
+// Закрытие модального окна при клике вне его
+window.onclick = (event) => {
+    if (event.target === document.getElementById('upgradeModal')) {
+        document.getElementById('upgradeModal').style.display = 'none'; 
+    }
+}
+// Функция для активации автокликера
+document.getElementById('autoClickerButton').onclick = () => {
+    if (!autoClickerActive) {
+        if (score >= 1000) {
+            score -= 1000; // Снимаем стоимость
             updateScoreDisplay();
+            autoClickerActive = true; // Делаем автокликер активным
             updateAutoClickerStatus();
-        
-            // Запускаем автокликер
-            autoClickerInterval = setInterval(() => {
-                score += clickMultiplier; // Увеличиваем счёт
-                updateScoreDisplay();
-            }, 1000);
-        } catch (error) {
-            console.error(error);
+            startAutoClicker(); // Запускаем автокликер
+        } else {
+            alert('Недостаточно очков для покупки автокликера!');
         }
     }
-});
+};
+const startAutoClicker = () => {
+    autoClickerInterval = setInterval(() => {
+        // Увеличиваем счет
+        score += clickMultiplier; // Увеличиваем счет за каждую итерацию
+        updateScoreDisplay();
+        // Увеличиваем время работы автокликера
+        autoClickerDuration += 1000;
+        localStorage.setItem('autoClickerDuration', autoClickerDuration); // Сохраняем текущую длительность
+        // Проверяем время
+        if (autoClickerDuration >= maxOfflineTime) {
+            clearInterval(autoClickerInterval);
+            autoClickerActive = false;
+            updateAutoClickerStatus();
+        } else {
+            document.getElementById('autoClickerTime').innerText = 'Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}';
+        }
+    }, 1000); // Каждую секунду
+};
+// Загружаем данные пользователя при загрузке страницы
+loadUserData();
