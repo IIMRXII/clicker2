@@ -5,9 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кликер</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        button { padding: 10px 20px; font-size: 20px; }
-        h2 { margin-top: 20px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin-top: 50px; 
+        }
+        button { 
+            padding: 10px 20px; 
+            font-size: 20px; 
+        }
+        h2 { 
+            margin-top: 20px; 
+        }
     </style>
 </head>
 <body>
@@ -26,16 +35,25 @@
         }
 
         document.getElementById('clickButton').addEventListener('click', async () => {
-            const response = await fetch('/api/click', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId }) // Отправляем userId серверу
-            });
-            const data = await response.json();
-            score = data.score; // Обновляем счет
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            try {
+                const response = await fetch('/api/click', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId }) // Отправляем userId серверу
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка при получении обновленного счета');
+                }
+
+                const data = await response.json();
+                score = data.score; // Обновляем счет
+                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`; // Исправлено на использование обратных кавычек
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
         });
     </script>
 </body>
