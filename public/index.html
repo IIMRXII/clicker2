@@ -43,6 +43,23 @@
             localStorage.setItem('userId', userId); // Сохраняем его
         }
 
+        // Функция для загрузки данных пользователя
+        const loadUserData = async () => {
+            const response = await fetch(`/api/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                score = data.score;
+                clickMultiplier = data.clickMultiplier;
+                clickUpgradeCost = data.clickUpgradeCost;
+                updateScoreDisplay();
+                updateUpgradeButtonText();
+            }
+        };
+
+        const updateScoreDisplay = () => {
+            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+        };
+
         document.getElementById('clickButton').addEventListener('click', async () => {
             const response = await fetch('/api/click', {
                 method: 'POST',
@@ -53,7 +70,7 @@
             });
             const data = await response.json();
             score = data.score; // Обновляем счет
-            document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+            updateScoreDisplay();
         });
 
         // Обработчик улучшений
@@ -71,11 +88,11 @@
                 score = data.score; // Обновляем счет
                 clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
                 clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
-                document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+                updateScoreDisplay();
                 document.getElementById('upgradeMessage').innerText = 'Улучшение успешно!';
             } else {
                 document.getElementById('upgradeMessage').innerText = 'Недостаточно очков для улучшения!';
-            }
+}
             updateUpgradeButtonText();
         });
 
@@ -84,7 +101,8 @@
                 `Улучшить клики (${clickUpgradeCost} очков)`;
         };
 
-        updateUpgradeButtonText(); // Инициализация текста кнопки при загрузке
+        // Загружаем данные пользователя при загрузке страницы
+        loadUserData(); 
     </script>
 </body>
 </html>
