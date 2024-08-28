@@ -61,6 +61,10 @@
 
     <button id="openUpgradeButton">Открыть меню улучшений</button>
 
+    <!-- Кнопка для автокликера -->
+    <button id="autoClickerButton">Запустить автокликер</button>
+    <h3 id="autoClickerStatus">Автокликер неактивен</h3>
+
     <!-- Модальное окно для улучшений -->
     <div id="upgradeModal">
         <div id="modalContent">
@@ -76,6 +80,8 @@
         let clickMultiplier = 1;
         let clickUpgradeCost = 100;
         let userId = localStorage.getItem('userId') || null; // Получаем userId из localStorage
+        let autoClickerActive = false;
+        let autoClickerInterval; // Интервал для автокликера
 
         // Генерируем userId, если его нет
         if (!userId) {
@@ -156,6 +162,30 @@
                 document.getElementById('upgradeModal').style.display = 'none'; 
             }
         }
+
+        // Функция для активации автокликера
+        document.getElementById('autoClickerButton').onclick = () => {
+            if (!autoClickerActive) {
+                autoClickerActive = true;
+                document.getElementById('autoClickerStatus').innerText = 'Автокликер активен';
+                autoClickerInterval = setInterval(async () => {
+                    const response = await fetch('/api/click', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId }) // Отправляем userId серверу
+                    });
+                    const data = await response.json();
+                    score = data.score; // Обновляем счет
+                    updateScoreDisplay();
+                }, 1000); // Интервал автокликера (каждую секунду)
+            } else {
+                clearInterval(autoClickerInterval);
+                autoClickerActive = false;
+                document.getElementById('autoClickerStatus').innerText = 'Автокликер неактивен';
+            }
+        };
 
         // Загружаем данные пользователя при загрузке страницы
         loadUserData(); 
