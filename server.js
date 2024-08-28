@@ -98,6 +98,32 @@ app.post('/api/upgrade', async (req, res) => {
     }
 });
 
+// API для получения данных о пользователе
+app.get('/api/user/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        let clickedUser = await Click.findOne({ userId });
+
+        if (!clickedUser) {
+            // Если пользователь не найден, создаем нового
+            clickedUser = new Click({ userId });
+            await clickedUser.save();
+        }
+
+        // Отправляем данные пользователя
+        res.json({
+            userId: clickedUser.userId,
+            score: clickedUser.score,
+            clickMultiplier: clickedUser.clickMultiplier,
+            clickUpgradeCost: clickedUser.clickUpgradeCost,
+        });
+    } catch (error) {
+        console.error('Ошибка получения данных о пользователе:', error);
+        res.status(500).json({ error: 'Ошибка получения данных о пользователе' });
+    }
+});
+
 // Запуск сервера
 app.listen(PORT, () => {
     console.log(`Сервер запущен на порту ${PORT}`);
