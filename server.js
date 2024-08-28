@@ -52,7 +52,7 @@ app.post('/api/click', async (req, res) => {
         await clickedUser.save(); // Сохраняем изменения
 
         // Отправляем ответ с ID и счетом
-        res.json({ userId: clickedUser.userId, score: clickedUser.score });
+        res.json({ userId: clickedUser.userId, score: clickedUser.score, clickUpgradeCost: clickedUser.clickUpgradeCost });
     } catch (error) {
         console.error('Ошибка обработки клика:', error);
         res.status(500).json({ error: 'Ошибка обработки клика' });
@@ -87,7 +87,7 @@ app.post('/api/upgrade', async (req, res) => {
                 userId: clickedUser.userId,
                 score: clickedUser.score,
                 clickMultiplier: clickedUser.clickMultiplier,
-                clickUpgradeCost: clickedUser.clickUpgradeCost,
+                clickUpgradeCost: clickedUser.clickUpgradeCost, // Сохраняем стоимость улучшения
             });
         } else {
             return res.status(400).json({ error: 'Недостаточно очков для улучшения' });
