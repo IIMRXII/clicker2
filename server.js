@@ -48,7 +48,7 @@ app.post('/api/click', async (req, res) => {
             clickedUser = new Click({ userId });
         }
 
-        clickedUser.score += 1; // Увеличиваем счет
+        clickedUser.score += clickedUser.clickMultiplier; // Используем множитель для увеличения счета
         await clickedUser.save(); // Сохраняем изменения
 
         // Отправляем ответ с ID и счетом
@@ -76,7 +76,8 @@ app.post('/api/upgrade', async (req, res) => {
         }
 
         if (clickedUser.score >= clickedUser.clickUpgradeCost) {
-            clickedUser.score -= clickedUser.clickUpgradeCost; // Платим за улучшение
+            // Платим за улучшение
+            clickedUser.score -= clickedUser.clickUpgradeCost;
             clickedUser.clickMultiplier += 1; // Увеличиваем множитель
             clickedUser.clickUpgradeCost = Math.floor(clickedUser.clickUpgradeCost * 1.5); // Увеличиваем стоимость следующего улучшения
             await clickedUser.save(); // Сохраняем изменения
