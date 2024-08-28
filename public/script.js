@@ -61,7 +61,7 @@ const formatTime = (time) => {
 
 // Обработчик клика по кнопке
 document.getElementById('clickButton').addEventListener('click', async () => {
-    const response = awaitfetch('/api/click', {
+    const response = await fetch('/api/click', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
