@@ -31,29 +31,34 @@ const loadUserData = async () => {
         updateScoreDisplay();
         updateUpgradeButtonText(); // Обновляем текст кнопки улучшений
         updateAutoClickerStatus(); // Обновляем статус автокликера
+
         // Проверяем, активен ли автокликер
-        if (autoClickerActive) {
+        if (localStorage.getItem('autoClickerActive') === 'true') {
+            autoClickerActive = true;
             startAutoClicker();
         }
     }
 };
 
+// Функция для обновления отображения счета
 const updateScoreDisplay = () => {
     document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
     localStorage.setItem('score', score); // Сохраняем счет в localStorage
 };
 
+// Функция для обновления текста кнопки улучшений
 const updateUpgradeButtonText = () => {
     document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
 };
 
+// Функция для обновления статуса автокликера
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
-    document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
     document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
 };
 
+// Функция для форматирования времени
 const formatTime = (time) => {
     const hours = Math.floor((time / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((time / (1000 * 60)) % 60);
@@ -118,10 +123,11 @@ window.onclick = (event) => {
 document.getElementById('autoClickerButton').onclick = () => {
     if (!autoClickerActive) {
         if (score >= autoClickerCost) {
-            score -= autoClickerCost; // Снимаем стоимость
+            score -= autoClickerCost; // Снимаем стоимость автокликера
             updateScoreDisplay();
             autoClickerActive = true; // Делаем автокликер активным
             updateAutoClickerStatus();
+            localStorage.setItem('autoClickerActive', 'true'); // Сохраняем статус автокликера
             startAutoClicker(); // Запускаем автокликер
         } else {
             alert('Недостаточно очков для покупки автокликера!');
@@ -129,33 +135,39 @@ document.getElementById('autoClickerButton').onclick = () => {
     }
 };
 
+// Функция для запуска автокликера
 const startAutoClicker = () => {
     autoClickerInterval = setInterval(() => {
         // Увеличиваем счет
         score += clickMultiplier; // Увеличиваем счет за каждую итерацию
         updateScoreDisplay();
+        
         // Увеличиваем время работы автокликера
         autoClickerDuration += 1000;
         localStorage.setItem('autoClickerDuration', autoClickerDuration); // Сохраняем текущую длительность
-        localStorage.setItem('score', score); // Сохраняем счет в localStorage
+
         // Проверяем время
         if (autoClickerDuration >= maxOfflineTime) {
             clearInterval(autoClickerInterval);
             autoClickerActive = false;
+            localStorage.setItem('autoClickerActive', 'false'); // Сохраняем статус
             updateAutoClickerStatus();
-        } else {
-            document.getElementById('autoClickerTime').innerText = `Автокликер будет активен в оффлайн-режиме: ${formatTime(maxOfflineTime - autoClickerDuration)}`;
         }
     }, 1000); // Каждую секунду
 };
 
-// Обновим статус автокликера, если он запущен
-if (localStorage.getItem('autoClickerActive') === 'true') {
-    autoClickerActive = true;
-    startAutoClicker();
-}
+// Восстанавливаем состояние при перезагрузке
+window.onload = () => {
+    score = parseInt(localStorage.getItem('score')) || 0;
+    clickMultiplier = parseInt(localStorage.getItem('clickMultiplier')) || 1;
+    autoClickerActive = localStorage.getItem('autoClickerActive') === 'true';
+    autoClickerDuration = parseInt(localStorage.getItem('autoClickerDuration')) || 0;
 
-// Сохраняем состояние автокликера
-window.addEventListener('beforeunload', () => {
-    localStorage.setItem('autoClickerActive', autoClickerActive);
-});
+    updateScoreDisplay();
+    updateUpgradeButtonText();
+    
+    if (autoClickerActive) {
+        startAutoClicker();
+        updateAutoClickerStatus();
+    }
+};
