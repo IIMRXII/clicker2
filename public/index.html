@@ -2,30 +2,33 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no"> <!-- Запрет на зум -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кликер</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Подключаем CSS -->
+    <style>
+        /* Добавьте стили для вашего приложения здесь */
+    </style>
 </head>
 <body>
-    <h1>Добро пожаловать в Кликер!</h1>
-    <button id="clickButton">Кликни меня!</button>
-    <h2 id="scoreDisplay">Счет: 0</h2>
-
-    <button id="openUpgradeButton">Открыть меню улучшений</button>
-
-    <!-- Модальное окно для улучшений -->
-    <div id="upgradeModal" style="display: none;"> <!-- Скрываем модальное окно по умолчанию -->
-        <div id="modalContent">
-            <span id="closeModal">&times;</span>
-            <h2>Улучшения:</h2>
+    <h1>Кликер</h1>
+    <div id="scoreDisplay">Счет: 0</div>
+    <button id="clickButton">Клик!</button>
+    <div>
+        <h2>Улучшения</h2>
+        <div id="upgradeModal" style="display: none;">
+            <div id="upgradeMessage"></div>
             <button id="clickUpgradeButton">Улучшить клики (100 очков)</button>
-            <p id="upgradeMessage"></p>
-            <button id="autoClickerButton" disabled>Купить автокликер (1000 очков)</button>
-            <h3 id="autoClickerStatus">Автокликер неактивен</h3>
-            <h3 id="autoClickerTime">Автокликер будет активен в оффлайн-режиме: 00:00</h3>
+            <button id="closeModal">Закрыть</button>
         </div>
+        <button id="openUpgradeButton">Открыть меню улучшений</button>
     </div>
 
-    <script src="script.js"></script> <!-- Подключаем JavaScript -->
+    <div>
+        <h2>Автокликер</h2>
+        <div id="autoClickerStatus">Автокликер неактивен</div>
+        <div id="autoClickerTime">Автокликер будет активен в оффлайн-режиме: 00:00:00</div>
+        <button id="autoClickerButton">Купить автокликер (500 очков)</button>
+    </div>
+
+    <script src="script.js"></script> <!-- Подключите ваш JavaScript код здесь -->
 </body>
 </html>
