@@ -1,10 +1,10 @@
-let score = parseInt(localStorage.getItem('score')) || 0; 
+let score = parseInt(localStorage.getItem('score')) || 0; // Получаем счёт из localStorage или 0
 let clickMultiplier = 1;
 let clickUpgradeCost = 100;
-let autoClickerCost = 500; 
+let autoClickerCost = 500; // Стоимость автокликера
 let userId = localStorage.getItem('userId') || null; 
 let autoClickerActive = false;
-let autoClickerInterval;
+let autoClickerInterval; // Интервал для автокликера
 
 // Генерируем userId, если его нет
 if (!userId) {
@@ -15,7 +15,7 @@ if (!userId) {
 // Убедимся, что модальное окно скрыто
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('upgradeModal').style.display = 'none';
-    loadUserData();
+    loadUserData(); // Загружаем данные пользователя
 });
 
 // Функция для загрузки данных пользователя
@@ -35,7 +35,7 @@ const loadUserData = async () => {
 
 const updateScoreDisplay = () => {
     document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
-    localStorage.setItem('score', score); 
+    localStorage.setItem('score', score); // Сохраняем счет в localStorage
 };
 
 const updateUpgradeButtonText = () => {
@@ -45,7 +45,7 @@ const updateUpgradeButtonText = () => {
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
-    document.getElementById('autoClickerButton').disabled = autoClickerActive;
+    document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
 };
 
 // Обработчик клика по кнопке
@@ -55,9 +55,19 @@ document.getElementById('clickButton').addEventListener('click', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId })
     });
+    
     const data = await response.json();
-    score = data.score; 
-    updateScoreDisplay();
+    score = data.score; // Обновляем счет
+
+    // Анимация счётчика
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    scoreDisplay.classList.add('updated'); // Добавляем класс для анимации
+    updateScoreDisplay(); // Обновляем отображение счёта
+
+    // Убираем класс через 1000 мс
+    setTimeout(() => {
+        scoreDisplay.classList.remove('updated');
+    }, 1000);
 });
 
 // Обработчик улучшений
@@ -68,10 +78,12 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId })
         });
+        
         const data = await response.json();
-        score = data.score; 
-        clickMultiplier = data.clickMultiplier; 
-        clickUpgradeCost = data.clickUpgradeCost; 
+        score = data.score; // Обновляем счет
+        clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
+        clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+
         updateScoreDisplay();
         updateUpgradeButtonText();
     } else {
@@ -100,11 +112,11 @@ window.onclick = (event) => {
 document.getElementById('autoClickerButton').onclick = () => {
     if (!autoClickerActive) {
         if (score >= autoClickerCost) {
-            score -= autoClickerCost; 
+            score -= autoClickerCost; // Снимаем стоимость автокликера
             updateScoreDisplay();
-            autoClickerActive = true; 
+            autoClickerActive = true; // Делаем автокликер активным
             updateAutoClickerStatus();
-            startAutoClicker(); 
+            startAutoClicker(); // Запускаем автокликер
         } else {
             alert('Недостаточно очков для покупки автокликера!');
         }
@@ -114,9 +126,9 @@ document.getElementById('autoClickerButton').onclick = () => {
 // Функция для запуска автокликера
 const startAutoClicker = () => {
     autoClickerInterval = setInterval(() => {
-        score += clickMultiplier; 
+        score += clickMultiplier; // Увеличиваем счет за каждую итерацию
         updateScoreDisplay();
-    }, 1000); 
+    }, 1000); // Каждую секунду
 };
 
 // Восстановление состояния при перезагрузке
@@ -129,7 +141,7 @@ window.onload = () => {
     updateUpgradeButtonText();
     
     if (autoClickerActive) {
-        startAutoClicker(); 
+        startAutoClicker(); // Запускаем автокликер, если он активен
         updateAutoClickerStatus();
     }
 };
