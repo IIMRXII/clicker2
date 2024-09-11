@@ -1,10 +1,10 @@
-let score = parseInt(localStorage.getItem('score')) || 0; // Получаем счёт из localStorage или 0
+let score = parseInt(localStorage.getItem('score')) || 0; 
 let clickMultiplier = 1;
 let clickUpgradeCost = 100;
-let autoClickerCost = 500; // Стоимость автокликера
+let autoClickerCost = 500; 
 let userId = localStorage.getItem('userId') || null; 
 let autoClickerActive = false;
-let autoClickerInterval; // Интервал для автокликера
+let autoClickerInterval;
 
 // Генерируем userId, если его нет
 if (!userId) {
@@ -15,7 +15,7 @@ if (!userId) {
 // Убедимся, что модальное окно скрыто
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('upgradeModal').style.display = 'none';
-    loadUserData(); // Загружаем данные пользователя
+    loadUserData();
 });
 
 // Функция для загрузки данных пользователя
@@ -25,7 +25,7 @@ const loadUserData = async () => {
         const data = await response.json();
         score = Math.max(score, data.score);
         clickMultiplier = data.clickMultiplier;
-        clickUpgradeCost = data.clickUpgradeCost;
+        clickUpgradeCost = data.clickUpgradeCost; 
         
         updateScoreDisplay();
         updateUpgradeButtonText();
@@ -35,7 +35,7 @@ const loadUserData = async () => {
 
 const updateScoreDisplay = () => {
     document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
-    localStorage.setItem('score', score); // Сохраняем счет в localStorage
+    localStorage.setItem('score', score); 
 };
 
 const updateUpgradeButtonText = () => {
@@ -45,7 +45,7 @@ const updateUpgradeButtonText = () => {
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
-    document.getElementById('autoClickerButton').disabled = autoClickerActive; // Делаем кнопку неактивной после покупки
+    document.getElementById('autoClickerButton').disabled = autoClickerActive;
 };
 
 // Обработчик клика по кнопке
@@ -56,7 +56,7 @@ document.getElementById('clickButton').addEventListener('click', async () => {
         body: JSON.stringify({ userId })
     });
     const data = await response.json();
-    score = data.score; // Обновляем счет
+    score = data.score; 
     updateScoreDisplay();
 });
 
@@ -69,9 +69,9 @@ document.getElementById('clickUpgradeButton').addEventListener('click', async ()
             body: JSON.stringify({ userId })
         });
         const data = await response.json();
-        score = data.score; // Обновляем счет
-        clickMultiplier = data.clickMultiplier; // Обновляем множитель кликов
-        clickUpgradeCost = data.clickUpgradeCost; // Обновляем стоимость улучшения
+        score = data.score; 
+        clickMultiplier = data.clickMultiplier; 
+        clickUpgradeCost = data.clickUpgradeCost; 
         updateScoreDisplay();
         updateUpgradeButtonText();
     } else {
@@ -89,7 +89,7 @@ document.getElementById('closeModal').onclick = () => {
     document.getElementById('upgradeModal').style.display = 'none'; 
 }
 
-// Закрытие модального окна при клике вне него
+// Закрытие модального окна при клике вне его
 window.onclick = (event) => {
     if (event.target === document.getElementById('upgradeModal')) {
         document.getElementById('upgradeModal').style.display = 'none'; 
@@ -100,11 +100,11 @@ window.onclick = (event) => {
 document.getElementById('autoClickerButton').onclick = () => {
     if (!autoClickerActive) {
         if (score >= autoClickerCost) {
-            score -= autoClickerCost; // Снимаем стоимость автокликера
+            score -= autoClickerCost; 
             updateScoreDisplay();
-            autoClickerActive = true; // Делаем автокликер активным
+            autoClickerActive = true; 
             updateAutoClickerStatus();
-            startAutoClicker(); // Запускаем автокликер
+            startAutoClicker(); 
         } else {
             alert('Недостаточно очков для покупки автокликера!');
         }
@@ -114,17 +114,9 @@ document.getElementById('autoClickerButton').onclick = () => {
 // Функция для запуска автокликера
 const startAutoClicker = () => {
     autoClickerInterval = setInterval(() => {
-        // Увеличиваем счет на количество кликов
-        score += clickMultiplier; // Увеличиваем счет за каждую итерацию
+        score += clickMultiplier; 
         updateScoreDisplay();
-    }, 1000); // Каждую секунду
-};
-
-// Функция для отключения автокликера
-const stopAutoClicker = () => {
-    clearInterval(autoClickerInterval);
-    autoClickerActive = false;
-    updateAutoClickerStatus();
+    }, 1000); 
 };
 
 // Восстановление состояния при перезагрузке
@@ -137,7 +129,7 @@ window.onload = () => {
     updateUpgradeButtonText();
     
     if (autoClickerActive) {
-        startAutoClicker(); // Запускаем автокликер, если он активен
+        startAutoClicker(); 
         updateAutoClickerStatus();
     }
 };
