@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Функция для загрузки данных пользователя
 const loadUserData = async () => {
-    const response = await fetch(`/api/user/${userId}`);
+    const response = await fetch(/api/user/${userId});
     if (response.ok) {
         const data = await response.json();
         score = Math.max(score, data.score);
@@ -34,12 +34,12 @@ const loadUserData = async () => {
 };
 
 const updateScoreDisplay = () => {
-    document.getElementById('scoreDisplay').innerText = `Счет: ${score}`;
+    document.getElementById('scoreDisplay').innerText = Счет: ${score};
     localStorage.setItem('score', score); // Сохраняем счет в localStorage
 };
 
 const updateUpgradeButtonText = () => {
-    document.getElementById('clickUpgradeButton').innerText = `Улучшить клики (${clickUpgradeCost} очков)`;
+    document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
 };
 
 const updateAutoClickerStatus = () => {
@@ -144,4 +144,4 @@ window.onload = () => {
         startAutoClicker(); // Запускаем автокликер, если он активен
         updateAutoClickerStatus();
     }
-};
+}};
