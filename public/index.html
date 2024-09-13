@@ -4,47 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- Запрет зума -->
     <title>Кликер Игра</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f0f0f0;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
         }
-        h1 {
-            margin-bottom: 20px;
-            transition: transform 0.5s;
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 1000;
         }
-        h1:hover {
-            transform: scale(1.05);
-        }
-        .score {
-            font-size: 24px;
-            margin-bottom: 20px;
-            transition: color 0.5s;
-        }
-        .score.updated {
-            color: green;
-            transition: color 0.5s;
+        .dark-theme {
+            background-color: #333;
+            color: #fff;
         }
         button {
-            padding: 10px 20px;
-            margin: 5px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.3s;
+            transition: transform 0.3s;
         }
         button:hover {
-            background-color: #45a049;
             transform: scale(1.05);
         }
         #upgradeModal {
@@ -57,56 +39,43 @@
             background-color: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
-            animation: fadeIn 0.5s;
         }
         .modal-content {
             background-color: white;
             padding: 20px;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            animation: slideIn 0.5s;
         }
         .modal-content h2 {
             margin: 0 0 20px;
-        }
-        .upgrade-message {
-            color: red;
-            transition: opacity 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <h1>Кликер Игра</h1>
-    <div class="score" id="scoreDisplay">Счет: 0</div>
-    
-    <button id="clickButton">Клик!</button>
+    <div class="container text-center">
+        <h1>Кликер Игра</h1>
+        <div class="score" id="scoreDisplay">Счет: 0</div>
+        
+        <button id="clickButton" class="btn btn-success">Клик!</button>
 
-    <div>
         <h2>Улучшения</h2>
-        <button id="openUpgradeButton">Открыть меню улучшений</button>
+        <button id="openUpgradeButton" class="btn btn-primary">Открыть меню улучшений</button>
+        
         <div id="upgradeModal">
             <div class="modal-content">
                 <h2>Улучшения</h2>
                 <div id="upgradeMessage" class="upgrade-message"></div>
-                <button id="clickUpgradeButton">Улучшить клики (100 очков)</button>
-                <button id="closeModal">Закрыть</button>
+                <button id="clickUpgradeButton" class="btn btn-warning">Улучшить клики (100 очков)</button>
+                <button id="closeModal" class="btn btn-danger">Закрыть</button>
             </div>
         </div>
-    </div>
 
-    <div>
         <h2>Автокликер</h2>
         <div id="autoClickerStatus">Автокликер неактивен</div>
-        <button id="autoClickerButton">Купить автокликер (500 очков)</button>
+        <button id="autoClickerButton" class="btn btn-info">Купить автокликер (500 очков)</button>
+        <button id="pauseAutoClickerButton" class="btn btn-secondary">Пауза</button>
+        <button id="toggleThemeButton" class="btn btn-dark">Переключить тему</button>
     </div>
 
     <script src="script.js"></script> <!-- Подключите ваш JavaScript код здесь -->
