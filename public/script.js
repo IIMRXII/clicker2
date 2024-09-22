@@ -144,4 +144,4 @@ window.onload = () => {
         startAutoClicker(); // Запускаем автокликер, если он активен
         updateAutoClickerStatus();
     }
-}};
+};
