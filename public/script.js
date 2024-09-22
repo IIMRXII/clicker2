@@ -42,11 +42,6 @@ const updateUpgradeButtonText = () => {
     document.getElementById('clickUpgradeButton').innerText = 'Улучшить клики (${clickUpgradeCost} очков)';
 };
 
-
-const updateUpgradeButtonText = () => {
-    document.getElementById('clickUpgradeButton').innerText = 'Улучшить клики (${clickUpgradeCost} очков)';
-};
-
 const updateAutoClickerStatus = () => {
     const status = autoClickerActive ? 'Автокликер активен' : 'Автокликер неактивен';
     document.getElementById('autoClickerStatus').innerText = status;
