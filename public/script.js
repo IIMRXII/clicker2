@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Функция для загрузки данных пользователя
 const loadUserData = async () => {
-    const response = await fetch(/api/user/${userId});
+    const response = await fetch('/api/user/${userId}');
     if (response.ok) {
         const data = await response.json();
         score = Math.max(score, data.score);
