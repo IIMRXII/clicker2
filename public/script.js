@@ -34,17 +34,17 @@ const loadUserData = async () => {
 };
 
 const updateScoreDisplay = () => {
-    document.getElementById('scoreDisplay').innerText = Счет: ${score};
+    document.getElementById('scoreDisplay').innerText = 'Счет: ${score}';
     localStorage.setItem('score', score); // Сохраняем счет в localStorage
 };
 
 const updateUpgradeButtonText = () => {
-    document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
+    document.getElementById('clickUpgradeButton').innerText = 'Улучшить клики (${clickUpgradeCost} очков)';
 };
 
 
 const updateUpgradeButtonText = () => {
-    document.getElementById('clickUpgradeButton').innerText = Улучшить клики (${clickUpgradeCost} очков);
+    document.getElementById('clickUpgradeButton').innerText = 'Улучшить клики (${clickUpgradeCost} очков)';
 };
 
 const updateAutoClickerStatus = () => {
